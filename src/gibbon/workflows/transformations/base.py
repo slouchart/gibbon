@@ -1,22 +1,18 @@
+from abc import abstractmethod
 
 
-class AbstractMappingNode:
-    def __init__(self, name):
-        self.name = name
-
-    @property
-    def id(self):
-        return self.name
-
-
-class Transformation(AbstractMappingNode):
+class Transformation:
     def __init__(self, name, in_ports, out_ports):
-        super().__init__(name)
+        self.name = name
         self.in_ports = dict()
         self.out_ports = dict()
         self._initialize_ports(in_ports, out_ports)
         self.in_queues = []
         self.out_queues = []
+
+    @property
+    def id(self):
+        return self.name
 
     def _initialize_ports(self, in_ports, out_ports):
         for p in range(in_ports):
@@ -44,6 +40,7 @@ class Transformation(AbstractMappingNode):
 
         return n_port
 
+    @abstractmethod
     def set_source(self, parent_transfo):
         raise NotImplementedError
 
@@ -78,10 +75,8 @@ class Transformation(AbstractMappingNode):
     def reset(self):
         pass
 
+    @abstractmethod
     def get_async_job(self):
-        raise NotImplementedError
-
-    def get_sync_job(self):
         raise NotImplementedError
 
 

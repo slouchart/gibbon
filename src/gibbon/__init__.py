@@ -1,4 +1,4 @@
-from .mappings import *
+from .workflows import *
 from .execution import *
 from .io import *
 

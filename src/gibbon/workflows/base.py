@@ -1,17 +1,30 @@
 from .transformations.endpoints import Source, Target
 from .exceptions import *
+import logging
+import re
 
 
-class Mapping:
+from ._dag_utils import _DirectedAcyclicGraph
+
+
+def check_valid_name(name):
+    regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+    return regexp.match(name)
+
+
+class Workflow:
 
     def __init__(self, name=None):
+        self._dag = _DirectedAcyclicGraph()
         self._nodes = dict()
         self._roots = []
         self._warnings = []
         self._errors = []
         self._checked = False
         self._valid = False
-        self.name = name if name else '<unamed>'
+        self.name = name if name else 'unamed'
+        if not check_valid_name(self.name):
+            self._add_error(InvalidNameError, f'Workflow name is invalid: {self.name}')
 
     def _create_node(self, parent, cls, *args, **kwargs):
         node = None
@@ -21,12 +34,17 @@ class Mapping:
             self._add_warning(w)
         except BaseBuildError as e:
             self._add_error(e)
+        except Exception as e:
+            logging.critical(f'Build process for {self.name} has encountered an unexpected exception: {repr(e)}')
 
         if node is None:
             return None
 
+        if not check_valid_name(node.name):
+            self._add_error(InvalidNameError, f'Node name is invalid: {node.name}')
+
         if self._exists(node):
-            self._add_error(NodeAlreadyExist(f'Duplicate name {node}'))
+            self._add_error(NodeAlreadyExist, f'Duplicate name {node}')
 
         if parent:
             node.set_source(parent)
@@ -36,13 +54,13 @@ class Mapping:
 
         self._nodes[node.id] = node
 
-        self._ckecked = False
+        self._checked = False
 
         return node
 
     def _get_node_by_name(self, name):
         if name not in self._nodes:
-            self._add_error(NodeNotFound(f"Node {name} not found"))
+            self._add_error(NodeNotFound, f"Node {name} not found")
             return None
         return self._nodes[name]
 
@@ -59,7 +77,7 @@ class Mapping:
                 for source in node.sources:
                     _check_path_to_source(source)
             elif node not in self._roots:
-                self._add_error(NodeReachabilityError(f'Source {node.name} unconnected'))
+                self._add_error(NodeReachabilityError, f'Source {node.name} unconnected')
             else:
                 pass
 
@@ -70,7 +88,7 @@ class Mapping:
             elif isinstance(node, Target):
                 pass
             else:
-                self._add_error(NodeReachabilityError(f"Transformation {node.name} unconnected to a target"))
+                self._add_error(NodeReachabilityError, f"Transformation {node.name} unconnected to a target")
 
         targets = [n for n in self._nodes.values() if n.has_target]
         for target in targets:
@@ -79,20 +97,20 @@ class Mapping:
         for source in self._roots:
             _check_path_to_target(source)
 
-    def _add_error(self, exc):
-        self._errors.append(exc)
+    def _add_error(self, exc, msg=None):
+        self._errors.append(exc(msg))
 
-    def _add_warning(self, warn):
-        self._warnings.append(warn)
+    def _add_warning(self, warn, msg=None):
+        self._warnings.append(warn(msg))
 
-    def add_source(self, name, ports=1):
+    def add_source(self, name):
         self._checked = False
-        node = self._create_node(None, Source, name)
+        self._create_node(None, Source, name)
 
     def add_target(self, name, source):
         self._checked = False
         parent = self._get_node_by_name(source)
-        node = self._create_node(parent, Target, name)
+        self._create_node(parent, Target, name)
 
     def add_transformation(self, name, type, source, targets=(), **kwargs):
 
@@ -143,8 +161,7 @@ class Mapping:
 
     def validate(self, verbose=False):
 
-        if verbose:
-            print(f"Validating mapping {self.name}")
+        logging.info(f"Validating mapping {self.name}")
 
         # is there any previous build errors?
         if len(self._errors):
@@ -161,12 +178,12 @@ class Mapping:
         self._checked = True
 
         if verbose:
-            print(self.get_all_errors())
-            print(self.get_all_warnings())
-            if self.is_valid:
-                print(f"Mapping {self.name} is valid.")
-            else:
-                print(f"Mapping {self.name} is invalid.")
+            logging.info(self.get_all_errors())
+            logging.info(self.get_all_warnings())
+        if self.is_valid:
+            logging.info(f"Mapping {self.name} is valid.")
+        else:
+            logging.error(f"Mapping {self.name} is invalid.")
 
     def get_all_warnings(self):
         s = ""
@@ -228,8 +245,8 @@ class Mapping:
 
     def run(self, exec_visitor, *args, **kwargs):
         if not self.is_valid:
-            raise RuntimeWarning(f"{self.name}: invalid mapping cannot be run")
-
-        self._bfs_traverse_links(exec_visitor.set_queues)
-        self._bfs_traverse(exec_visitor.create_job_from)
-        exec_visitor.run(self.name, *args, **kwargs)
+            logging.error(f"{self.name}: invalid mapping cannot be run")
+        else:
+            self._bfs_traverse_links(exec_visitor.set_queues)
+            self._bfs_traverse(exec_visitor.create_job_from)
+            exec_visitor.run(self.name, *args, **kwargs)

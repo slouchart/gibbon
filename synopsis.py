@@ -31,37 +31,35 @@ def synopsis():
 
     from src import gibbon
 
-    from samples import list_of_people_2
+    from samples import list_of_people_err, list_of_people
+    import logging
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
 
     # example of a simple mapping connecting a source and a destination through a filter
-    mapping = gibbon.Mapping("Simple")
+    workflow = gibbon.Workflow("Simple")
 
-    mapping.add_source('SRC1')
-    mapping.add_source('SRC2')
+    workflow.add_source('SRC1')
 
-    mapping.add_complex_transformation('SRC1+2',
-                                       type=gibbon.Union,
-                                       sources=('SRC1', 'SRC2'))
-
-    mapping.add_transformation('ADULTS?',
+    workflow.add_transformation('IS_ADULT',
                                type=gibbon.Expression,
-                               source='SRC1+2',
+                               source='SRC1',
                                func=adults)
 
-    mapping.add_target('DEST', source='ADULTS?')
+    workflow.add_target('DEST', source='IS_ADULT')
 
-    mapping.validate(verbose=True)
+    workflow.validate(verbose=True)
 
     config = gibbon.Configuration()
-    config.add_configuration('SRC1', source=gibbon.CSVSourceFile, filename='sample.csv', tuple_maker=make_tuple)
-    config.add_configuration('SRC2', source=gibbon.Sequence, data=list_of_people_2)
+    config.add_configuration('SRC1', source=gibbon.Sequence, data=list_of_people)
     config.add_configuration('DEST', target=gibbon.StdOut)
 
-    executor = gibbon.get_sync_executor('threading')
+    executor = gibbon.get_async_executor()
 
-    mapping.prepare(config)
-    mapping.run(executor, verbose=True)
-    mapping.reset(config)
+    workflow.prepare(config)
+    workflow.run(executor, verbose=True)
+    workflow.reset(config)
 
 
 if __name__ == '__main__':

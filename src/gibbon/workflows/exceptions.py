@@ -2,6 +2,10 @@ class BaseBuildError(BaseException):
     pass
 
 
+class InvalidNameError(BaseBuildError):
+    pass
+
+
 class NodeAlreadyExist(BaseBuildError):
     pass
 

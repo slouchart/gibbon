@@ -1,15 +1,16 @@
 list_of_people = [
     ('Brian', 23),
     ('Joe', 35),
-    ('Mary', 40),
+    ('Mary', 20),
     ('Alice', 25),
     ('Billy', 15)
 ]
 
-list_of_people_2 = [
+list_of_people_err = [
     ('Penny', 25),
-    ('Jane', 16),
-    ('Martin', 14)
+    ('Jane', 'ERR'),
+    ('Martin', 14),
+    ('John', 66)
 ]
 
 list_of_items = [

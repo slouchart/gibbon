@@ -1,9 +1,12 @@
 from .base import Transformation
 from ..exceptions import TargetAssignmentError
+from abc import abstractmethod
 
 
 class AbstractEndPoint:
-    pass
+    @abstractmethod
+    def configure(self, *args, **kwargs):
+        raise NotImplementedError
 
 
 class Source(Transformation, AbstractEndPoint):
@@ -44,17 +47,6 @@ class Source(Transformation, AbstractEndPoint):
                     await q.put(None)  # EOF
         return job
 
-    def get_sync_job(self):
-        def job():
-            with self.actual_source(**self.source_cfg) as src:
-                for row in src:
-                    for q in self.out_queues:
-                        q.put(row)
-
-                for q in self.out_queues:
-                    q.put(None)  # EOF
-        return job
-
 
 class Target(Transformation, AbstractEndPoint):
     def __init__(self, name):
@@ -92,16 +84,6 @@ class Target(Transformation, AbstractEndPoint):
             with self.actual_target(**self.target_cfg) as tgt:
                 while True:
                     row = await self.in_queues[0].get()
-                    if row is None:
-                        break
-                    tgt.send(row)
-        return job
-
-    def get_sync_job(self):
-        def job():
-            with self.actual_target(**self.target_cfg) as tgt:
-                while True:
-                    row = self.in_queues[0].get()
                     if row is None:
                         break
                     tgt.send(row)
