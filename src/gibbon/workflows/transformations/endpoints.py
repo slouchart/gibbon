@@ -99,11 +99,11 @@ class Target(Transformation, AbstractEndPoint):
 
 
 def is_source(o):
-    return isinstance(o, Source) or issubclass(o, Source)
+    return isinstance(o, Source)
 
 
 def is_target(o):
-    return isinstance(o, Target) or issubclass(o, Target)
+    return isinstance(o, Target)
 
 
 def is_endpoint(o):

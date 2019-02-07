@@ -1,4 +1,5 @@
 from .transformations.endpoints import Source, Target
+from .transformations.endpoints import is_source, is_target
 from .exceptions import *
 import logging
 import re
@@ -49,7 +50,7 @@ class DirectedAcyclicGraph:
             if node.has_source:
                 for source in node.sources:
                     _check_path_to_source(source)
-            elif not isinstance(node, Source):
+            elif not is_source(node):
                 callback(NodeReachabilityError, f'Transformation {node.name} unconnected to a source')
             else:
                 pass
@@ -58,7 +59,7 @@ class DirectedAcyclicGraph:
             if node.has_target:
                 for child in node.targets:
                     _check_path_to_target(child)
-            elif isinstance(node, Target):
+            elif is_target(node):
                 pass
             else:
                 callback(NodeReachabilityError, f"Transformation {node.name} unconnected to a target")
