@@ -58,7 +58,7 @@ def synopsis():
     executor = gibbon.get_async_executor()
 
     workflow.prepare(config)
-    workflow.run(executor, verbose=True)
+    workflow.run(executor)
     workflow.reset(config)
 
 

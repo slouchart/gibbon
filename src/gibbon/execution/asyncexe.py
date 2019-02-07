@@ -26,7 +26,9 @@ class AsyncExecutor(BaseExecutor):
     def create_queue(self):
         return self._queue_factory(loop=self.loop)
 
-    async def schedule(self):
+    async def schedule(self, name):
+
+        self.name = name
 
         for coro_func, infos in self._jobs.items():
             logging.info(f'job {self.name}, starting transformation {infos[0]} ({infos[1]})')
@@ -49,12 +51,10 @@ class AsyncExecutor(BaseExecutor):
 
         return exec_ok
 
-    def run(self, name, verbose=False):
-        self.verbose = verbose
-        self.name = name
+    def run(self, name):
 
         logging.info(f'Start asynchronous job execution for mapping {name}')
-        exec_ok = self.loop.run_until_complete(self.schedule())
+        exec_ok = self.loop.run_until_complete(self.schedule(name))
 
         if exec_ok:
             status = 'SUCCESS'
