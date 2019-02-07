@@ -8,10 +8,21 @@ class Sequence:
     def __iter__(self):
         return iter(self._data)
 
-    def __enter__(self):
+    def __aiter__(self):
+        self._iter = iter(self._data)
         return self
 
-    def __exit__(self, *args):
+    async def __anext__(self):
+        try:
+            item = self._iter.__next__()
+            return item
+        except StopIteration:
+            raise StopAsyncIteration
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
         pass
 
 

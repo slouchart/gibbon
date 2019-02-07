@@ -38,8 +38,8 @@ class Source(Transformation, AbstractEndPoint):
 
     def get_async_job(self):
         async def job():
-            with self.actual_source(**self.source_cfg) as src:
-                for row in src:
+            async with self.actual_source(**self.source_cfg) as src:
+                async for row in src:
                     for q in self.out_queues:
                         await q.put(row)
 

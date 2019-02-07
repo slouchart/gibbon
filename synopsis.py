@@ -58,11 +58,10 @@ def synopsis():
     config.add_configuration('SRC2', source=gibbon.Sequence, data=list_of_people_2)
     config.add_configuration('DEST', target=gibbon.StdOut)
 
-    loop = asyncio.get_event_loop()
-    executor = gibbon.get_async_executor(loop=loop)
+    executor = gibbon.get_async_executor()
 
     workflow.prepare(config)
-    loop.run_until_complete(workflow.schedule(executor))
+    workflow.run(executor)
     workflow.reset(config)
 
 
