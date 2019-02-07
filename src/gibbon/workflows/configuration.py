@@ -15,8 +15,6 @@ class Configuration:
                 transformation.configure()
             except NotImplementedError or AttributeError:
                 pass
-            except BaseException:
-                raise
 
     def reset_configuration(self, transformation):
         if transformation.name in self._cfg:

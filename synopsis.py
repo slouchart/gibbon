@@ -55,7 +55,7 @@ def synopsis():
 
     config = gibbon.Configuration()
     config.add_configuration('SRC1', source=gibbon.Sequence, data=list_of_people)
-    config.add_configuration('SRC2', source=gibbon.Sequence, data=list_of_people_2)
+    #config.add_configuration('SRC2', source=gibbon.Sequence, data=list_of_people_2)
     config.add_configuration('DEST', target=gibbon.StdOut)
 
     executor = gibbon.get_async_executor()

@@ -34,4 +34,11 @@ class TargetAssignmentError(BaseBuildError):
     pass
 
 
+class ConfigurationError(BaseException):
+    pass
+
+
+class MissingArgumentError(ConfigurationError):
+    pass
+
 

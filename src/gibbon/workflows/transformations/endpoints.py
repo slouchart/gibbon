@@ -1,5 +1,5 @@
 from .base import Transformation
-from ..exceptions import TargetAssignmentError
+from ..exceptions import TargetAssignmentError, MissingArgumentError
 from abc import abstractmethod
 
 
@@ -10,7 +10,8 @@ class AbstractEndPoint:
 
 
 class Source(Transformation, AbstractEndPoint):
-
+    """A near abstract source of data. THe actual stream generator is provided at runtime by the Configuration feature
+    the actual source must expose a asynchronous interface for async iter and async context management"""
     def __init__(self, name, ports=1):
         super().__init__(name, in_ports=0, out_ports=ports)
         self.actual_source = None
@@ -28,9 +29,12 @@ class Source(Transformation, AbstractEndPoint):
         raise AttributeError(f"{self.name}: cannot set the source of a Source transformation")
 
     def configure(self, *args, **kwargs):
-        self.actual_source = kwargs['source']
-        del kwargs['source']
-        self.source_cfg = kwargs
+        if 'source' in kwargs:
+            self.actual_source = kwargs.get('source', None)
+            del kwargs['source']
+            self.source_cfg = kwargs
+        else:
+            raise MissingArgumentError(f"Argument 'source' is missing for configuring source {self.name}")
 
     def reset(self):
         self.actual_source = None
@@ -49,6 +53,10 @@ class Source(Transformation, AbstractEndPoint):
 
 
 class Target(Transformation, AbstractEndPoint):
+    """A near abstract model of a downstream target whether a file or a database.
+    The actual target is specified at runtime with the Configuration.
+    The target will perform blocking operations unless it is defined as non-blocking.
+    Therefore we have an implementation mismatch here :/"""
     def __init__(self, name):
         super().__init__(name, in_ports=1, out_ports=0)
         self.actual_target = None

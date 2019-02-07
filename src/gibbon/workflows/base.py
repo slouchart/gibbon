@@ -115,6 +115,7 @@ class Workflow:
         self._valid = False
         self.name = name if name else 'unamed'
         self.check_valid_name(self.name)
+        self._invalid_config = None
 
     def check_valid_name(self, name):
         regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
@@ -128,7 +129,10 @@ class Workflow:
         return self._dag[name]
 
     def _add_error(self, exc, msg=None):
-        self._errors.append(exc(msg))
+        if isinstance(exc, BaseException):
+            self._errors.append(exc)
+        else:
+            self._errors.append(exc(msg))
 
     def _add_warning(self, warn, msg=None):
         self._warnings.append(warn(msg))
@@ -244,7 +248,13 @@ class Workflow:
         if not self.is_valid:
             logging.error(f"{self.name}: invalid workflow cannot be configured")
         else:
-            self._dag.bfs_traverse(cfg_visitor.set_configuration)
+            try:
+                self._dag.bfs_traverse(cfg_visitor.set_configuration)
+                self._invalid_config = False
+            except ConfigurationError as e:
+                self._add_error(e)
+                logging.error(str(e))
+                self._invalid_config = True
 
     def reset(self, cfg_visitor):
         self._dag.bfs_traverse(cfg_visitor.reset_configuration)
@@ -252,10 +262,13 @@ class Workflow:
     def _prepare_execution(self, exec_visitor):
         if not self.is_valid:
             logging.error(f"{self.name}: invalid workflow cannot be run")
+        elif self._invalid_config is None or self._invalid_config:
+            logging.error(f"{self.name}: configuration is either missing or incomplete, workflow cannot be run")
+            self._invalid_config = True
         else:
             self._dag.bfs_traverse_links(exec_visitor.set_queues)
             self._dag.bfs_traverse(exec_visitor.create_job_from)
-        return self.is_valid
+        return self.is_valid and not self._invalid_config
 
     async def schedule(self, exec_visitor, *args, **kwargs):
         if self._prepare_execution(exec_visitor):
