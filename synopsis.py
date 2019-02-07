@@ -41,6 +41,9 @@ def synopsis():
     workflow = gibbon.Workflow("Simple")
 
     workflow.add_source('SRC1')
+    #workflow.add_source('SRC2')
+
+    #workflow.add_complex_transformation('UNION', gibbon.Union, sources=('SRC1', 'SRC2'))
 
     workflow.add_transformation('IS_ADULT',
                                type=gibbon.Expression,
@@ -53,6 +56,7 @@ def synopsis():
 
     config = gibbon.Configuration()
     config.add_configuration('SRC1', source=gibbon.Sequence, data=list_of_people)
+    #config.add_configuration('SRC2', source=gibbon.Sequence, data=list_of_people_err)
     config.add_configuration('DEST', target=gibbon.StdOut)
 
     executor = gibbon.get_async_executor()

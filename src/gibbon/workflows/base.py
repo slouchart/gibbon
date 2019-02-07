@@ -22,6 +22,7 @@ class Workflow:
         self._errors = []
         self._checked = False
         self._valid = False
+        self._invalid_cfg = True
         self.name = name if name else 'unamed'
         if not check_valid_name(self.name):
             self._add_error(InvalidNameError, f'Workflow name is invalid: {self.name}')
@@ -161,7 +162,7 @@ class Workflow:
 
     def validate(self, verbose=False):
 
-        logging.info(f"Validating mapping {self.name}")
+        logging.info(f"Validating structure of workflow {self.name}")
 
         # is there any previous build errors?
         if len(self._errors):
@@ -181,9 +182,9 @@ class Workflow:
             logging.info(self.get_all_errors())
             logging.info(self.get_all_warnings())
         if self.is_valid:
-            logging.info(f"Mapping {self.name} is valid.")
+            logging.info(f"Workflow structure for {self.name} is valid.")
         else:
-            logging.error(f"Mapping {self.name} is invalid.")
+            logging.error(f"Workflow structure for {self.name} is invalid.")
 
     def get_all_warnings(self):
         s = ""
@@ -239,13 +240,22 @@ class Workflow:
 
     def prepare(self, cfg_visitor):
         self._bfs_traverse(cfg_visitor.set_configuration)
+        if cfg_visitor.has_errors:
+            self._invalid_cfg = True
+            for err in cfg_visitor.errors:
+                logging.error(str(err))
+        else:
+            self._invalid_cfg = False
 
     def reset(self, cfg_visitor):
+        self._invalid_cfg = True
         self._bfs_traverse(cfg_visitor.reset_configuration)
 
     def run(self, exec_visitor, *args, **kwargs):
         if not self.is_valid:
-            logging.error(f"{self.name}: invalid mapping cannot be run")
+            logging.error(f"{self.name}: invalid workflow cannot be run")
+        elif self._invalid_cfg:
+            logging.error(f"{self.name}: invalid configuration, workflow cannot be run")
         else:
             self._bfs_traverse_links(exec_visitor.set_queues)
             self._bfs_traverse(exec_visitor.create_job_from)

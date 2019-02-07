@@ -1,5 +1,5 @@
 from .base import Transformation
-from ..exceptions import TargetAssignmentError
+from ..exceptions import TargetAssignmentError, ConfigurationError
 from abc import abstractmethod
 
 
@@ -28,6 +28,8 @@ class Source(Transformation, AbstractEndPoint):
         raise AttributeError(f"{self.name}: cannot set the source of a Source transformation")
 
     def configure(self, *args, **kwargs):
+        if 'source' not in kwargs:
+            raise ConfigurationError(f'Argument source required for configuring {self.name}')
         self.actual_source = kwargs['source']
         del kwargs['source']
         self.source_cfg = kwargs

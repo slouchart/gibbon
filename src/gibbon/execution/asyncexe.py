@@ -53,14 +53,14 @@ class AsyncExecutor(BaseExecutor):
 
     def run(self, name):
 
-        logging.info(f'Start asynchronous job execution for mapping {name}')
+        logging.info(f'Start asynchronous job execution for workflow {name}')
         exec_ok = self.loop.run_until_complete(self.schedule(name))
 
         if exec_ok:
             status = 'SUCCESS'
         else:
             status = 'FAILURE'
-        logging.info(f'Complete asynchronous job execution for mapping {name}, status {status}')
+        logging.info(f'Complete asynchronous job execution for workflow {name}, status {status}')
 
         if self.shutdown:
             self.loop.stop()
