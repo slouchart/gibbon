@@ -18,7 +18,6 @@ class AsyncExecutor(BaseExecutor):
     def __init__(self, queue_factory, loop, shutdown=False):
         super().__init__(queue_factory)
         self._tasks = []
-        self.name = None
         self.loop = loop
         self.shutdown = shutdown
         assert self.loop is not None
@@ -26,10 +25,10 @@ class AsyncExecutor(BaseExecutor):
     def create_queue(self):
         return self._queue_factory(loop=self.loop)
 
-    async def schedule(self):
+    async def schedule(self, name):
 
         for coro_func, infos in self._jobs.items():
-            logging.info(f'job {self.name}, starting transformation {infos[0]} ({infos[1]})')
+            logging.info(f'job {name}, starting transformation {infos[0]} ({infos[1]})')
             coro = coro_func()
             self._tasks.append(coro)
 
@@ -49,12 +48,10 @@ class AsyncExecutor(BaseExecutor):
 
         return exec_ok
 
-    def run(self, name, verbose=False):
-        self.verbose = verbose
-        self.name = name
+    def run(self, name):
 
         logging.info(f'Start asynchronous job execution for mapping {name}')
-        exec_ok = self.loop.run_until_complete(self.schedule())
+        exec_ok = self.loop.run_until_complete(self.schedule(name))
 
         if exec_ok:
             status = 'SUCCESS'

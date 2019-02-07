@@ -6,6 +6,13 @@ list_of_people = [
     ('Billy', 15)
 ]
 
+list_of_people_2 = [
+    ('Penny', 25),
+    ('Jane', 16),
+    ('Martin', 14),
+    ('John', 66)
+]
+
 list_of_people_err = [
     ('Penny', 25),
     ('Jane', 'ERR'),

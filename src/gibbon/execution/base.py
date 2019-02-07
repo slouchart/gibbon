@@ -6,7 +6,6 @@ class BaseExecutor:
     def __init__(self, queue_factory):
         self._jobs = dict()
         self._queue_factory = queue_factory
-        self.verbose = False
 
     def create_queue(self):
         return self._queue_factory()
@@ -20,7 +19,7 @@ class BaseExecutor:
         raise NotImplementedError
 
     @abstractmethod
-    def run(self, name, verbose=False):
+    def run(self, name):
         raise NotImplementedError
 
 

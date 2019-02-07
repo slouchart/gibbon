@@ -1,4 +1,4 @@
-from sys import stdin, stdout
+from sys import stdout
 
 
 class Sequence:

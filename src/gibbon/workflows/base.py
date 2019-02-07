@@ -249,10 +249,18 @@ class Workflow:
     def reset(self, cfg_visitor):
         self._dag.bfs_traverse(cfg_visitor.reset_configuration)
 
-    def run(self, exec_visitor, *args, **kwargs):
+    def _prepare_execution(self, exec_visitor):
         if not self.is_valid:
             logging.error(f"{self.name}: invalid workflow cannot be run")
         else:
             self._dag.bfs_traverse_links(exec_visitor.set_queues)
             self._dag.bfs_traverse(exec_visitor.create_job_from)
+        return self.is_valid
+
+    async def schedule(self, exec_visitor, *args, **kwargs):
+        if self._prepare_execution(exec_visitor):
+            await exec_visitor.schedule(self.name, *args, **kwargs)
+
+    def run(self, exec_visitor, *args, **kwargs):
+        if self._prepare_execution(exec_visitor):
             exec_visitor.run(self.name, *args, **kwargs)
