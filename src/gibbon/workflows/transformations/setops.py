@@ -18,6 +18,7 @@ class Union(ManyToMany):
                 for iq in input_queues:
                     if iq.empty():
                         continue
+
                     row = await iq.get()
 
                     if row is None:
