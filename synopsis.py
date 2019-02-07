@@ -13,9 +13,10 @@
     7) actual I/O handlers (databases, files, sockets, whatever) are selected at runtime
     8) actual execution mode (threaded, asynchronous, whatever) is selected at runtime
 """
+from src import gibbon
+from tests.samples import *
 
-from samples import *
-import asyncio
+import logging
 
 
 def make_tuple(it):
@@ -32,13 +33,6 @@ def adults(row):
 
 def synopsis():
 
-    from src import gibbon
-
-    import logging
-
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-
     # example of a simple mapping connecting a source and a destination through a filter
     workflow = gibbon.Workflow("Simple")
 
@@ -54,11 +48,11 @@ def synopsis():
     workflow.validate(verbose=True)
 
     config = gibbon.Configuration()
-    config.add_configuration('SRC1', source=gibbon.Sequence, data=list_of_people)
-    #config.add_configuration('SRC2', source=gibbon.Sequence, data=list_of_people_2)
+    config.add_configuration('SRC1', source=gibbon.SequenceWrapper, data=list_of_people)
+    config.add_configuration('SRC2', source=gibbon.SequenceWrapper, data=list_of_people_2)
     config.add_configuration('DEST', target=gibbon.StdOut)
 
-    executor = gibbon.get_async_executor()
+    executor = gibbon.get_async_executor(shutdown=True)
 
     workflow.prepare(config)
     workflow.run(executor)
@@ -66,4 +60,6 @@ def synopsis():
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
     synopsis()

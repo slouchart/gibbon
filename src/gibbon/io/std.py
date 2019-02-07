@@ -1,9 +1,12 @@
 from sys import stdout
 
 
-class Sequence:
-    def __init__(self, data=()):
-        self._data = list(data)
+# TODO: find a hack to define an asynchronous iface to actual target and make it work with blocking I/O like stdout
+
+
+class SequenceWrapper:
+    def __init__(self, data):
+        self._data = data
 
     def __iter__(self):
         return iter(self._data)
@@ -24,6 +27,15 @@ class Sequence:
 
     async def __aexit__(self, *args):
         pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+    def send(self, data):
+        self._data.append(data)
 
 
 class StdOut:

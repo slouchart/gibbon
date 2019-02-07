@@ -43,16 +43,14 @@ class DirectedAcyclicGraph:
         return iter(self._roots)
 
     def check_reachability(self, callback):
-        """reachability invariant #1: there must be at least one path connecting any root source to a target
-           reachability invariant #2: there must be at least one path connecting any target to a root source"""
 
         def _check_path_to_source(node):
 
             if node.has_source:
                 for source in node.sources:
                     _check_path_to_source(source)
-            elif not self.is_root(node):
-                callback(NodeReachabilityError, f'Source {node.name} unconnected')
+            elif not isinstance(node, Source):
+                callback(NodeReachabilityError, f'Transformation {node.name} unconnected to a source')
             else:
                 pass
 
@@ -65,12 +63,9 @@ class DirectedAcyclicGraph:
             else:
                 callback(NodeReachabilityError, f"Transformation {node.name} unconnected to a target")
 
-        targets = [n for n in self.nodes if n.has_target]
-        for target in targets:
-            _check_path_to_source(target)
-
-        for source in self.roots:
-            _check_path_to_target(source)
+        for node in self.nodes:
+            _check_path_to_source(node)
+            _check_path_to_target(node)
 
     def bfs_traverse_links(self, callback):
         queue = []
@@ -113,19 +108,24 @@ class Workflow:
         self._errors = []
         self._checked = False
         self._valid = False
-        self.name = name if name else 'unamed'
+        self.name = name
         self.check_valid_name(self.name)
         self._invalid_config = None
 
     def check_valid_name(self, name):
+        if not name:
+            self._add_error(InvalidNameError, f'Object name is mandatory but appears to be missing')
+            return
+
         regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
         if not regexp.match(name):
-            self._add_error(InvalidNameError, f'Workflow name is invalid: {name}')
+            self._add_error(InvalidNameError, f'Object name is invalid: {name}')
 
     def get_node_by_name(self, name):
         if name not in self._dag:
             self._add_error(NodeNotFound, f"Node {name} not found")
             return None
+
         return self._dag[name]
 
     def _add_error(self, exc, msg=None):
@@ -145,7 +145,10 @@ class Workflow:
     def add_target(self, name, source):
         self._checked = False
         self.check_valid_name(name)
-        parent = self.get_node_by_name(source)
+        if source:
+            parent = self.get_node_by_name(source)
+        else:
+            parent = None
         self._dag.create_node(parent, Target, name)
 
     def add_transformation(self, name, type, source, targets=(), **kwargs):
@@ -222,7 +225,7 @@ class Workflow:
         if self.is_valid:
             logging.info(f"Mapping {self.name} is valid.")
         else:
-            logging.error(f"Mapping {self.name} is invalid.")
+            logging.info(f"Mapping {self.name} is invalid.")
 
     def get_all_warnings(self):
         s = ""
@@ -243,6 +246,10 @@ class Workflow:
             s = "No error."
 
         return s
+
+    def raise_last(self):
+        if len(self._errors):
+            raise self._errors.pop()
 
     def prepare(self, cfg_visitor):
         if not self.is_valid:
