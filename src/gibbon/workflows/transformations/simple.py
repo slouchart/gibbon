@@ -1,19 +1,4 @@
-from .base import Transformation
-from abc import abstractmethod
-
-
-class OneToMany(Transformation):
-    def __init__(self, name, out_ports=1):
-        super().__init__(name, 1, out_ports)
-
-    def set_source(self, parent_transfo):
-        assert self.in_ports[0] is None
-        self.in_ports[0] = parent_transfo
-        parent_transfo.add_target(self)
-
-    @abstractmethod
-    def get_async_job(self):
-        raise NotImplementedError
+from .base import OneToMany
 
 
 class Expression(OneToMany):
@@ -38,7 +23,7 @@ class Expression(OneToMany):
 
 
 class Filter(OneToMany):
-    def __init__(self, name, condition, out_ports=1):
+    def __init__(self, name, condition=lambda r: True, out_ports=1):
         super().__init__(name, out_ports)
         self.condition = condition
 

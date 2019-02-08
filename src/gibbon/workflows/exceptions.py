@@ -38,6 +38,7 @@ class ConfigurationError(BaseException):
     pass
 
 
-class ArgumentMissing(ConfigurationError):
+class MissingArgumentError(ConfigurationError):
     pass
+
 

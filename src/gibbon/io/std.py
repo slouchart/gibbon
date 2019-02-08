@@ -1,28 +1,41 @@
 from sys import stdout
 
 
-class Sequence:
-    def __init__(self, data=()):
-        self._data = list(data)
-        self._iter = iter(data)
+# TODO: find a hack to define an asynchronous iface to actual target and make it work with blocking I/O like stdout
 
-    '''Design note: the following implementation of the async iterator interface 
-    only works with Python 3.7+ see Issue bpo-31709: Drop support for asynchronous __aiter__
-    at https://github.com/python/cpython/pull/3903/files'''
+
+class SequenceWrapper:
+    def __init__(self, data):
+        self._data = data
+
+    def __iter__(self):
+        return iter(self._data)
+
     def __aiter__(self):
+        self._iter = iter(self._data)
         return self
 
     async def __anext__(self):
         try:
-            return next(self._iter)
+            item = self._iter.__next__()
+            return item
         except StopIteration:
             raise StopAsyncIteration
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *args):
+        pass
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
         pass
+
+    def send(self, data):
+        self._data.append(data)
 
 
 class StdOut:

@@ -1,6 +1,9 @@
 import csv
 
 
+# TODO: make it work using aiofiles and csvreader
+
+
 def naive_tuple_maker(it):
     return tuple(it)
 
