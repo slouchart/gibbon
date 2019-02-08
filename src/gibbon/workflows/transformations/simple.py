@@ -46,9 +46,10 @@ class Filter(OneToMany):
 
 class Sorter(OneToMany):
     # TODO: add doc string
-    def __init__(self, name, key, out_ports=1):
+    def __init__(self, name, key, reverse=False, out_ports=1):
         super().__init__(name, out_ports)
         self.key = key
+        self.reverse = reverse
 
     def get_async_job(self):
         async def job():
@@ -60,7 +61,7 @@ class Sorter(OneToMany):
                 else:
                     buffer.append(row)
 
-            for row in sorted(buffer, key=self.key):
+            for row in sorted(buffer, key=self.key, reverse=self.reverse):
                 for q in self.out_queues:
                     await q.put(row)
 
