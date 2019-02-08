@@ -2,6 +2,7 @@ from .base import OneToMany
 
 
 class Expression(OneToMany):
+    # TODO: add doc string
     def __init__(self, name, out_ports=1, func=lambda r: r):
         super().__init__(name, out_ports)
         self.func = func
@@ -23,6 +24,7 @@ class Expression(OneToMany):
 
 
 class Filter(OneToMany):
+    # TODO: add doc string
     def __init__(self, name, condition=lambda r: True, out_ports=1):
         super().__init__(name, out_ports)
         self.condition = condition
@@ -43,6 +45,7 @@ class Filter(OneToMany):
 
 
 class Sorter(OneToMany):
+    # TODO: add doc string
     def __init__(self, name, key, out_ports=1):
         super().__init__(name, out_ports)
         self.key = key
@@ -68,6 +71,7 @@ class Sorter(OneToMany):
 
 
 class Selector(OneToMany):
+    # TODO: add doc string
     def __init__(self, name, conditions, out_ports=1):
         super().__init__(name, out_ports)
         self.conditions = conditions
@@ -88,6 +92,7 @@ class Selector(OneToMany):
 
 
 class Aggregator(OneToMany):
+    # TODO: add doc string
     def __init__(self, name, key, func, initializer=(0,), out_ports=1):
         super().__init__(name, out_ports)
         self.key = key
