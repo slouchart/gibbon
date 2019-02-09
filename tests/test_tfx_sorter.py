@@ -23,10 +23,10 @@ class TestSorter(unittest.TestCase):
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
 
-        executor = gibbon.get_async_executor()
+        executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sort_asc.prepare(self.cfg)
         self.wk_sort_asc.run(executor)
-        self.assertEqual(self.results, [(-1,), (0,), (1,)])
+        self.assertSequenceEqual(self.results, [(-1,), (0,), (1,)])
 
     def test_sort_desc(self):
         self.results = []
@@ -34,10 +34,10 @@ class TestSorter(unittest.TestCase):
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
 
-        executor = gibbon.get_async_executor()
+        executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sort_desc.prepare(self.cfg)
         self.wk_sort_desc.run(executor)
-        self.assertEqual(self.results, [(1,), (0,), (-1,)])
+        self.assertSequenceEqual(self.results, [(1,), (0,), (-1,)])
 
 if __name__ == '__main__':
     unittest.main()

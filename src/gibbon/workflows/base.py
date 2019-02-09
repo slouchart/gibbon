@@ -136,21 +136,36 @@ class Workflow:
             self._errors.append(exc(msg))
 
     def _add_warning(self, warn, msg=None):
-        self._warnings.append(warn(msg))
+        if isinstance(warn, BaseException):
+            self._warnings.append(warn)
+        else:
+            self._warnings.append(warn(msg))
 
     def add_source(self, name):
         self._checked = False
         self.check_valid_name(name)
-        self._dag.create_node(None, Source, name)
+
+        try:
+            self._dag.create_node(None, Source, name)
+        except BaseBuildWarning as w:
+            self._add_warning(w)
+        except BaseException as e:
+            self._add_error(e)
 
     def add_target(self, name, source):
         self._checked = False
         self.check_valid_name(name)
-        if source:
-            parent = self.get_node_by_name(source)
-        else:
-            parent = None
-        self._dag.create_node(parent, Target, name)
+
+        try:
+            if source:
+                parent = self.get_node_by_name(source)
+            else:
+                parent = None
+            self._dag.create_node(parent, Target, name)
+        except BaseBuildWarning as w:
+            self._add_warning(w)
+        except BaseException as e:
+            self._add_error(e)
 
     def add_transformation(self, name, type, source, targets=(), **kwargs):
 
@@ -161,16 +176,22 @@ class Workflow:
         if source:
             parent = self.get_node_by_name(source)
 
-        node = self._dag.create_node(parent, type, name, **kwargs)
+        try:
+            node = self._dag.create_node(parent, type, name, **kwargs)
 
-        for target in targets:
-            if target is None:
-                continue
-            try:
-                target = self.get_node_by_name(target)
-                target.connect_to_source(node)
-            except BaseBuildWarning as w:
-                self._add_warning(w)
+            for target in targets:
+                if target is None:
+                    continue
+                try:
+                    target = self.get_node_by_name(target)
+                    target.connect_to_source(node)
+                except BaseBuildWarning as w:
+                    self._add_warning(w)
+        except BaseBuildWarning as w:
+            self._add_warning(w)
+        except BaseException as e:
+            self._add_error(e)
+
 
     def add_complex_transformation(self, name, type, sources, targets=(), **kwargs):
         self._checked = False
@@ -241,7 +262,7 @@ class Workflow:
     def get_all_errors(self):
         s = ""
         for exc in self._errors:
-            s += f"error: {exc}\n"
+            s += f"error: {repr(exc)}\n"
 
         if len(s) == 0:
             s = "No error."

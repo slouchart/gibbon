@@ -29,10 +29,10 @@ class TestFilter(unittest.TestCase):
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
 
-        executor = gibbon.get_async_executor()
+        executor = gibbon.get_async_executor(shutdown=True)
         self.wk_all_rows.prepare(self.cfg)
         self.wk_all_rows.run(executor)
-        self.assertEqual(self.results, self.data)
+        self.assertSequenceEqual(self.results, self.data)
 
     def testOnlyPositive(self):
         self.results = []
@@ -40,10 +40,10 @@ class TestFilter(unittest.TestCase):
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
 
-        executor = gibbon.get_async_executor()
+        executor = gibbon.get_async_executor(shutdown=True)
         self.wk_only_pos.prepare(self.cfg)
         self.wk_only_pos.run(executor)
-        self.assertEqual(self.results, [(1,)])
+        self.assertSequenceEqual(self.results, [(1,)])
 
 
 if __name__ == '__main__':

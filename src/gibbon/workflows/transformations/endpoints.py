@@ -79,8 +79,7 @@ class Target(Transformation, AbstractEndPoint):
         raise TargetAssignmentError(f"{self.name}: cannot assign a target to a Target")
 
     def configure(self, *args, **kwargs):
-        self.actual_target = kwargs['target']
-        del kwargs['target']
+        self.actual_target = kwargs.pop('target')
         self.target_cfg = kwargs
 
     def reset(self):
