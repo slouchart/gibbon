@@ -224,7 +224,7 @@ class Workflow:
 
     def validate(self, verbose=False):
 
-        logging.info(f"Validating mapping {self.name}")
+        logging.info(f"Validating workflow {self.name}")
 
         # is there any previous build errors?
         if len(self._errors):
@@ -244,9 +244,9 @@ class Workflow:
             logging.info(self.get_all_errors())
             logging.info(self.get_all_warnings())
         if self.is_valid:
-            logging.info(f"Mapping {self.name} is valid.")
+            logging.info(f"Workflow {self.name} is valid.")
         else:
-            logging.info(f"Mapping {self.name} is invalid.")
+            logging.info(f"Workflow {self.name} is invalid.")
 
     def get_all_warnings(self):
         s = ""
