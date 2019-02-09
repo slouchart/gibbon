@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from ..exceptions import TargetAssignmentError
 
 
 class Transformation:
@@ -61,6 +62,10 @@ class Transformation:
         return [n for n in self.out_ports.values() if n is not None]
 
     def add_target(self, target_transfo):
+
+        if target_transfo in self.out_ports.values():
+            raise TargetAssignmentError(f'Source {self.name} already connected to target {target_transfo.name}')
+
         n_port = self._get_next_available_output_port()
         self.out_ports[n_port] = target_transfo
 
@@ -117,9 +122,9 @@ class ManyToMany(Transformation):
 
         return n_port
 
-    def set_source(self, parent_transfo):
+    def set_source(self, *parent_transfos):
         # expect a tuple of sources transformations
-        for source in parent_transfo:
+        for source in parent_transfos:
             n_port = self._get_next_available_input_port()
             self.in_ports[n_port] = source
             source.add_target(self)

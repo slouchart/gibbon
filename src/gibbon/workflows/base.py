@@ -17,7 +17,10 @@ class DirectedAcyclicGraph:
             return None
 
         if parent:
-            node.set_source(parent)
+            if isinstance(parent, list):
+                node.set_source(*parent)
+            else:
+                node.set_source(parent)
 
         if not node.has_source:
             self._roots.append(node)
@@ -152,7 +155,7 @@ class Workflow:
         except BaseException as e:
             self._add_error(e)
 
-    def add_target(self, name, source):
+    def add_target(self, name, source=None):
         self._checked = False
         self.check_valid_name(name)
 
@@ -182,11 +185,10 @@ class Workflow:
             for target in targets:
                 if target is None:
                     continue
-                try:
-                    target = self.get_node_by_name(target)
-                    target.connect_to_source(node)
-                except BaseBuildWarning as w:
-                    self._add_warning(w)
+
+                target = self.get_node_by_name(target)
+                target.set_source(node)
+
         except BaseBuildWarning as w:
             self._add_warning(w)
         except BaseException as e:
@@ -202,16 +204,28 @@ class Workflow:
             if parent:
                 parents.append(parent)
 
-        node = self._dag.create_node(parents, type, name, *args, **kwargs)
+        try:
+            node = self._dag.create_node(parents, type, name, *args, **kwargs)
+
+            for target in targets:
+                if target is None:
+                    continue
+                target = self.get_node_by_name(target)
+                target.set_source(node)
+
+        except BaseBuildWarning as w:
+            self._add_warning(w)
+        except BaseException as e:
+            self._add_error(e)
+
+    def connect(self, source, *targets):
+        if source:
+            source = self.get_node_by_name(source)
 
         for target in targets:
-            if target is None:
-                continue
-            try:
-                target = self.get_node_by_name(target)
-                target.connect_to_source(node)
-            except BaseBuildWarning as w:
-                self._add_warning(w)
+            target = self.get_node_by_name(target)
+            if target and source:
+                target.set_source(source)
 
     @property
     def is_valid(self):
