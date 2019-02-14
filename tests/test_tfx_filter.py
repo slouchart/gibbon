@@ -46,5 +46,31 @@ class TestFilter(unittest.TestCase):
         self.assertSequenceEqual(self.results, [(1,)])
 
 
+def len_over_three(row):
+    return len(row[0]) > 3
+
+
+class TestFilterString(unittest.TestCase):
+
+    def setUp(self):
+        self.data = ['22', '333', '4444']
+        self.wk = gibbon.Workflow('all_rows')
+        self.wk.add_source('src')
+        self.wk.add_transformation('filter', gibbon.Filter, source='src', condition=len_over_three)
+        self.wk.add_target('tgt', source='filter')
+
+        self.cfg = gibbon.Configuration()
+
+    def testLenOverThree(self):
+        sink = []
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=list(zip(self.data)))
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+
+        executor = gibbon.get_async_executor(shutdown=True)
+        self.wk.prepare(self.cfg)
+        self.wk.run(executor)
+        self.assertSequenceEqual(sink, [('4444',)])
+
+
 if __name__ == '__main__':
     unittest.main()

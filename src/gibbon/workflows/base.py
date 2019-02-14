@@ -22,7 +22,7 @@ class DirectedAcyclicGraph:
             else:
                 node.set_source(parent)
 
-        if not node.has_source:
+        if is_source(node):
             self._roots.append(node)
 
         self._nodes[node.id] = node

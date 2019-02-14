@@ -1,6 +1,18 @@
 from .base import OneToMany
 
 
+def row_count():
+    def _count(r, c):
+        return (c+1, )
+    return _count
+
+
+def simple_sum(field_index):
+    def _sum_on(r, s):
+        return (s+r[field_index],)
+    return _sum_on
+
+
 class Aggregator(OneToMany):
     # TODO: add doc string
     def __init__(self, name, key, func, initializer=(0,), out_ports=1):
