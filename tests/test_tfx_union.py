@@ -19,7 +19,7 @@ class TestUnionCreate(unittest.TestCase):
         self.assertTrue(self.w.is_valid)
 
 
-@unittest.skip  # causes the test harness to hang in the all_tests scenario
+#@unittest.skip  # causes the test harness to hang in the all_tests scenario
 class TestUnionRun(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_union')
