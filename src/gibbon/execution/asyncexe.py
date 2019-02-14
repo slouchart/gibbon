@@ -15,7 +15,7 @@ def get_async_executor(loop=None, shutdown=False):
 
 class AsyncExecutor(BaseExecutor):
 
-    def __init__(self, queue_factory, loop, shutdown=False):
+    def __init__(self, queue_factory, loop, shutdown=True):
         super().__init__(queue_factory)
         self._tasks = []
         self.loop = loop

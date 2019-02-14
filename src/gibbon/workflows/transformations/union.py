@@ -11,8 +11,8 @@ class Union(ManyToMany):
             while True:
 
                 if len(input_queues) == 0:
-                    for q in self.out_queues:
-                        await q.put(None)
+                    for oq in self.out_queues:
+                        await oq.put(None)
                     break
 
                 for iq in input_queues:

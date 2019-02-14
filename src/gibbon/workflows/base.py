@@ -170,7 +170,7 @@ class Workflow:
         except BaseException as e:
             self._add_error(e)
 
-    def add_transformation(self, name, type, *args, source=None, targets=(), **kwargs):
+    def add_transformation(self, name, cls, *args, source=None, targets=(), **kwargs):
 
         self._checked = False
         self.check_valid_name(name)
@@ -180,7 +180,7 @@ class Workflow:
             parent = self.get_node_by_name(source)
 
         try:
-            node = self._dag.create_node(parent, type, name, *args, **kwargs)
+            node = self._dag.create_node(parent, cls, name, *args, **kwargs)
 
             for target in targets:
                 if target is None:
@@ -194,7 +194,7 @@ class Workflow:
         except BaseException as e:
             self._add_error(e)
 
-    def add_complex_transformation(self, name, type, *args, sources=(), targets=(), **kwargs):
+    def add_complex_transformation(self, name, cls, *args, sources=(), targets=(), **kwargs):
         self._checked = False
         self.check_valid_name(name)
 
@@ -205,7 +205,7 @@ class Workflow:
                 parents.append(parent)
 
         try:
-            node = self._dag.create_node(parents, type, name, *args, **kwargs)
+            node = self._dag.create_node(parents, cls, name, *args, **kwargs)
 
             for target in targets:
                 if target is None:

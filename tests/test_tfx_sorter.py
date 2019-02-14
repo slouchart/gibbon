@@ -39,5 +39,6 @@ class TestSorter(unittest.TestCase):
         self.wk_sort_desc.run(executor)
         self.assertSequenceEqual(self.results, [(1,), (0,), (-1,)])
 
+
 if __name__ == '__main__':
     unittest.main()
