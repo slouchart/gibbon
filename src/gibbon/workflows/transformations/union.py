@@ -6,10 +6,10 @@ class Union(ManyToMany):
         super().__init__(name, in_ports, out_ports)
 
     def get_async_job(self):
-        async def job():
-            input_queues = [q for q in self.in_queues]
-            while True:
+        input_queues = [q for q in self.in_queues]
 
+        async def job():
+            while True:
                 if len(input_queues) == 0:
                     for oq in self.out_queues:
                         await oq.put(None)

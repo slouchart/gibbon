@@ -19,8 +19,8 @@ class TestUnionCreate(unittest.TestCase):
         self.assertTrue(self.w.is_valid)
 
 
-@unittest.skip
-class TestUnion(unittest.TestCase):
+@unittest.skip  # causes the test harness to hang in the all_tests scenario
+class TestUnionRun(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_union')
         self.w.add_source('src1')
@@ -51,6 +51,9 @@ class TestUnion(unittest.TestCase):
         self.assertSequenceEqual(sorted(list(dict_for_assert.keys())), sorted(list(ref_for_assert.keys())))
         self.assertSequenceEqual(sorted(list(dict_for_assert.values())), sorted(list(ref_for_assert.values())))
 
+"""
+Some race condition seems to occur when using the tfx Union in a job
+"""
 
 if __name__ == '__main__':
     unittest.main()
