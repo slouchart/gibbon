@@ -25,8 +25,8 @@ class TestExpr(unittest.TestCase):
 
     def test_default(self):
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_default_expr.prepare(self.cfg)
@@ -42,8 +42,8 @@ class TestExpr(unittest.TestCase):
     def test_compute(self):
         self.results = []
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_compute_expr.prepare(self.cfg)

@@ -30,9 +30,9 @@ class TestConcat(unittest.TestCase):
         sink = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, data=src1)
-        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, data=src2)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, iterable=src1)
+        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=src2)
+        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.w.prepare(cfg)
@@ -49,9 +49,9 @@ class TestConcat(unittest.TestCase):
         sink = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, data=src1)
-        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, data=src2)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, iterable=src1)
+        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=src2)
+        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.w.prepare(cfg)
@@ -79,9 +79,9 @@ class TestSplit(unittest.TestCase):
         sink2 = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=src)
-        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sink1)
-        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sink2)
+        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
+        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
+        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.w.prepare(cfg)
@@ -108,9 +108,9 @@ class TestSplitUnbalancedOne(unittest.TestCase):
             sink2 = []
 
             cfg = gibbon.Configuration()
-            cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=src)
-            cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sink1)
-            cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sink2)
+            cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
+            cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
+            cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
             executor = gibbon.get_async_executor(shutdown=True)
             self.w.prepare(cfg)
@@ -130,24 +130,24 @@ class TestSplitUnbalancedTwo(unittest.TestCase):
         self.w.add_target('tgt2', source='splitter')
 
     def test_split_unbalanced(self):
-            self.assertTrue(self.w.is_valid)
-            src = [('row_id', 'row_data', 'row_info')]
-            sink1 = []
-            sink2 = []
+        self.assertTrue(self.w.is_valid)
+        src = [('row_id', 'row_data', 'row_info')]
+        sink1 = []
+        sink2 = []
 
-            cfg = gibbon.Configuration()
-            cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=src)
-            cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sink1)
-            cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sink2)
+        cfg = gibbon.Configuration()
+        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
+        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
+        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
-            executor = gibbon.get_async_executor(shutdown=True)
-            self.w.prepare(cfg)
-            self.w.run(executor)
+        executor = gibbon.get_async_executor(shutdown=True)
+        self.w.prepare(cfg)
+        self.w.run(executor)
 
-            self.assertEqual(len(sink1), 1)
-            self.assertEqual(len(sink2), 1)
-            self.assertEqual(sink1[0], ('row_id',))
-            self.assertEqual(sink2[0], ('row_data',))
+        self.assertEqual(len(sink1), 1)
+        self.assertEqual(len(sink2), 1)
+        self.assertEqual(sink1[0], ('row_id',))
+        self.assertEqual(sink2[0], ('row_data',))
 
 
 if __name__ == '__main__':

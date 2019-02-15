@@ -85,9 +85,9 @@ class TestSelector(unittest.TestCase):
 
         sinks = ([], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sinks[1])
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sel_bin.prepare(self.cfg)
@@ -98,10 +98,10 @@ class TestSelector(unittest.TestCase):
     def testMultipleSelection(self):
         sinks = ([], [], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sinks[1])
-        self.cfg.add_configuration('tgt3', target=gibbon.SequenceWrapper, data=sinks[2])
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.add_configuration('tgt3', target=gibbon.SequenceWrapper, container=sinks[2])
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sel_mul.prepare(self.cfg)
@@ -115,9 +115,9 @@ class TestSelector(unittest.TestCase):
         data = [(0,)]
         sinks = ([], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sinks[1])
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sel_shc.prepare(self.cfg)
@@ -131,9 +131,9 @@ class TestSelector(unittest.TestCase):
         data = [(1,), (-1,), (0,)]
         sinks = ([], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sinks[1])
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sel_def.prepare(self.cfg)
@@ -162,10 +162,10 @@ class TestSelector(unittest.TestCase):
         data = [(0,), (1,), (-1,), (0,)]
         sinks = ([], [], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sinks[1])
-        self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, data=sinks[2])
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, container=sinks[2])
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sel_wd.prepare(self.cfg)
@@ -191,11 +191,11 @@ class TestSelector(unittest.TestCase):
         empty = []
         sinks = ([], [], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, data=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, data=sinks[1])
-        self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, data=sinks[2])
-        self.cfg.add_configuration('useless_target', target=gibbon.SequenceWrapper, data=empty)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, container=sinks[2])
+        self.cfg.add_configuration('useless_target', target=gibbon.SequenceWrapper, container=empty)
 
         executor = gibbon.get_async_executor(shutdown=True)
 

@@ -1,18 +1,12 @@
-from sys import stdout
+from .base import AsyncReaderInterface, AsyncWriterInterface
 
 
-# TODO: find a hack to define an asynchronous iface to actual target and make it work with blocking I/O like stdout
-
-
-class SequenceWrapper:
-    def __init__(self, data):
-        self._data = data
-
-    def __iter__(self):
-        return iter(self._data)
+class SequenceWrapper(AsyncReaderInterface, AsyncWriterInterface):
+    def __init__(self, iterable=(), container=None):
+        self._iter = iter(iterable)
+        self._container = container
 
     def __aiter__(self):
-        self._iter = iter(self._data)
         return self
 
     async def __anext__(self):
@@ -28,25 +22,21 @@ class SequenceWrapper:
     async def __aexit__(self, *args):
         pass
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        pass
-
-    def send(self, data):
-        self._data.append(data)
+    async def send(self, data):
+        if self._container is not None:
+            self._container.append(data)
 
 
-class StdOut:
-    def __init__(self):
+class StdOut(AsyncWriterInterface):
+    def __init__(self, stdout):
         self._output = stdout
 
-    def send(self, data):
+    async def send(self, data):
         print(data, file=self._output)
 
-    def __enter__(self):
+    async def __aenter__(self):
         return self
 
-    def __exit__(self, *args):
+    async def __aexit__(self, *args):
         pass
+

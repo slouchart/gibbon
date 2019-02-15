@@ -88,12 +88,12 @@ class Target(Transformation, AbstractEndPoint):
 
     def get_async_job(self):
         async def job():
-            with self.actual_target(**self.target_cfg) as tgt:
+            async with self.actual_target(**self.target_cfg) as tgt:
                 while True:
                     row = await self.in_queues[0].get()
                     if row is None:
                         break
-                    tgt.send(row)
+                    await tgt.send(row)
         return job
 
 

@@ -31,12 +31,12 @@ class TestEnumerator2(unittest.TestCase):
 
         self.cfg = gibbon.Configuration()
         tuples = list(zip(self.data))
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=tuples)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=tuples)
         self.w.validate(verbose=True)
 
     def test_run(self):
         sink = []
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
         executor = gibbon.get_async_executor(shutdown=True)
         self.w.prepare(self.cfg)
         self.w.run(executor)
@@ -55,12 +55,12 @@ class TestEnumerator3(unittest.TestCase):
 
         self.cfg = gibbon.Configuration()
         tuples = list(zip(self.data))
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=tuples)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=tuples)
         self.w.validate(verbose=True)
 
     def test_run(self):
         sink = []
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
         executor = gibbon.get_async_executor(shutdown=True)
         self.w.prepare(self.cfg)
         self.w.run(executor)

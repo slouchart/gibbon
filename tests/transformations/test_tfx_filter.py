@@ -26,8 +26,8 @@ class TestFilter(unittest.TestCase):
 
     def testAllRows(self):
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_all_rows.prepare(self.cfg)
@@ -37,8 +37,8 @@ class TestFilter(unittest.TestCase):
     def testOnlyPositive(self):
         self.results = []
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_only_pos.prepare(self.cfg)
@@ -63,8 +63,8 @@ class TestFilterString(unittest.TestCase):
 
     def testLenOverThree(self):
         sink = []
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=list(zip(self.data)))
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=zip(self.data))
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk.prepare(self.cfg)

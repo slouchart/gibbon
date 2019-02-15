@@ -20,8 +20,8 @@ class TestSorter(unittest.TestCase):
 
     def test_sort_asc(self):
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sort_asc.prepare(self.cfg)
@@ -31,8 +31,8 @@ class TestSorter(unittest.TestCase):
     def test_sort_desc(self):
         self.results = []
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, data=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=self.results)
+        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         self.wk_sort_desc.prepare(self.cfg)

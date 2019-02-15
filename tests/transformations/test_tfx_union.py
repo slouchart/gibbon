@@ -36,9 +36,9 @@ class TestUnionRun(unittest.TestCase):
         sink = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, data=data_src_1)
-        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, data=data_src_2)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, data=sink)
+        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, iterable=data_src_1)
+        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=data_src_2)
+        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         self.w.prepare(cfg)
         self.w.run(gibbon.get_async_executor(shutdown=True))
