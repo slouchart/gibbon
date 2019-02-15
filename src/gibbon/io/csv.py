@@ -66,14 +66,18 @@ class CSVTargetFile(AsyncWriterInterface):
             self._writer = await self._loop.run_in_executor(self._executor, csv.writer, self._file_obj,
                                                             **self._fmt_options)
             return self
-        except BaseException as exc:
-            await self.__aexit__(type(exc), str(exc), exc.__traceback__)
+        except BaseException as e:
+            await self._safe_close()
+            raise
 
     async def __aexit__(self, exc_type, exc_value, exc_traceback):
+        await self._safe_close()
+        return exc_type is None
+
+    async def _safe_close(self):
         self._writer = None
         if self._file_obj is not None:
             try:
                 await self._loop.run_in_executor(self._executor, self._file_obj.close)
             finally:
                 pass
-        return exc_type is not None

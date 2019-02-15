@@ -1,18 +1,32 @@
 import unittest
 import asyncio
 from pathlib import Path
+import os
 
 from src import gibbon
+
+
+def get_src_path():
+    p = Path(__file__)
+    p = Path(p.absolute())
+    p = Path(p.parents[1])
+    p = Path.joinpath(p, 'sample.csv')
+    return p
+
+
+def get_tgt_path():
+    p = Path(__file__)
+    p = Path(p.absolute())
+    p = Path(p.parents[1])
+    p = Path.joinpath(p, 'output.csv')
+    return p
 
 
 class TestCSVOpen(unittest.TestCase):
     def setUp(self):
         self._loop = asyncio.new_event_loop()
 
-        p = Path('.')
-        p = Path(p.absolute())
-        p = Path(p.parents[1])
-        p = Path.joinpath(p, 'tests/sample.csv')
+        p = get_src_path()
 
         self.assertFalse(not p.exists(), f"Expected file {p.absolute()} doesn't exist")
         self._filename = p.absolute()
@@ -31,11 +45,11 @@ class TestCSVOpen(unittest.TestCase):
         io = gibbon.CSVSourceFile(filename=self._filename, loop=self._loop)
 
         async def read_file():
-            results = []
+            lines = []
             async with io:
                 async for line in io:
-                    results.append(line)
-            return results
+                    lines.append(line)
+            return lines
 
         results = self._loop.run_until_complete((read_file()))
         self.assertTrue(len(results) > 0)
@@ -51,10 +65,7 @@ class TestCSVSource(unittest.TestCase):
         self.w.add_source('csv')
         self.w.add_target('list', source='csv')
 
-        p = Path('.')
-        p = Path(p.absolute())
-        p = Path(p.parents[1])
-        p = Path.joinpath(p, 'tests/sample.csv')
+        p = get_src_path()
 
         self.assertFalse(not p.exists(), f"Expected file {p.absolute()} doesn't exist")
         self._filename = p.absolute()
@@ -75,17 +86,44 @@ class TestCSVSource(unittest.TestCase):
 
 class TestCSVTarget(unittest.TestCase):
     def setUp(self):
-        self.w = gibbon.Workflow('csv_read')
-        self.w.add_source('csv')
-        self.w.add_target('list', source='csv')
+        self.w = gibbon.Workflow('csv_write')
+        self.w.add_source('src')
+        self.w.add_target('csv', source='src')
 
-        p = Path('.')
-        p = Path(p.absolute())
-        p = Path(p.parents[1])
-        p = Path.joinpath(p, 'tests/sample.csv')
-
-        self.assertFalse(not p.exists(), f"Expected file {p.absolute()} doesn't exist")
+        p = get_tgt_path()
         self._filename = p.absolute()
+        if p.exists():
+            os.remove(p.absolute())
+
+    def test_csv_target(self):
+        self.assertTrue(self.w.is_valid)
+
+        input_data = [
+            ('Brian', 23),
+            ('Joe', 'ERROR'),
+            ('Mary', 40),
+            ('Alice', 25),
+            ('Billy', 15),
+        ]
+        cfg = gibbon.Configuration()
+        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=input_data)
+        cfg.add_configuration('csv', target=gibbon.CSVTargetFile, filename=self._filename)
+
+        self.w.prepare(cfg)
+        self.w.run(gibbon.get_async_executor(shutdown=True))
+        self.assertFileContent()
+
+    def assertFileContent(self):
+
+        with open(self._filename, mode='r') as f:
+            content = f.readlines()
+
+        self.assertTrue(content is not None)
+
+    def tearDown(self):
+        p = Path(self._filename)
+        if p.exists():
+            os.remove(p.absolute())
 
 
 if __name__ == '__main__':
