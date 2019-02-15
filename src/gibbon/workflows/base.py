@@ -308,6 +308,7 @@ class Workflow:
             logging.error(f"{self.name}: configuration is either missing or incomplete, workflow cannot be run")
             self._invalid_config = True
         else:
+            self._dag.bfs_traverse(exec_visitor.complete_runtime_configuration)
             self._dag.bfs_traverse_links(exec_visitor.set_queues)
             self._dag.bfs_traverse(exec_visitor.create_job_from)
         return self.is_valid and not self._invalid_config

@@ -30,11 +30,13 @@ class Source(Transformation, AbstractEndPoint):
 
     def configure(self, *args, **kwargs):
         if 'source' in kwargs:
-            self.actual_source = kwargs.get('source', None)
-            del kwargs['source']
+            self.actual_source = kwargs.pop('source')
             self.source_cfg = kwargs
         else:
-            raise MissingArgumentError(f"Argument 'source' is missing for configuring source {self.name}")
+            if self.actual_source is None:
+                raise MissingArgumentError(f"Argument 'source' is missing for configuring source {self.name}")
+            else:
+                self.source_cfg.update(kwargs)
 
     def reset(self):
         self.actual_source = None
@@ -79,8 +81,14 @@ class Target(Transformation, AbstractEndPoint):
         raise TargetAssignmentError(f"{self.name}: cannot assign a target to a Target")
 
     def configure(self, *args, **kwargs):
-        self.actual_target = kwargs.pop('target')
-        self.target_cfg = kwargs
+        if 'target' in kwargs:
+            self.actual_target = kwargs.pop('target')
+            self.target_cfg = kwargs
+        else:
+            if self.actual_target is None:
+                raise MissingArgumentError(f"Argument 'target' is missing for configuring target {self.name}")
+            else:
+                self.target_cfg.update(kwargs)
 
     def reset(self):
         self.actual_target = None

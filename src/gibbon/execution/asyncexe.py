@@ -66,3 +66,6 @@ class AsyncExecutor(BaseExecutor):
     def create_job_from(self, transformation):
         coro_func = transformation.get_async_job()
         self._jobs[coro_func] = (transformation.name, type(transformation).__name__)
+
+    def complete_runtime_configuration(self, transformation):
+        transformation.configure(loop=self.loop, executor=None)

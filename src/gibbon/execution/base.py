@@ -15,6 +15,10 @@ class BaseExecutor:
         source.share_queue_with_target(target, queue)
 
     @abstractmethod
+    def complete_runtime_configuration(self, transformation):
+        raise NotImplementedError
+
+    @abstractmethod
     def create_job_from(self, transformation):
         raise NotImplementedError
 

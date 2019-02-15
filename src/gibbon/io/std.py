@@ -2,7 +2,7 @@ from .base import AsyncReaderInterface, AsyncWriterInterface
 
 
 class SequenceWrapper(AsyncReaderInterface, AsyncWriterInterface):
-    def __init__(self, iterable=(), container=None):
+    def __init__(self, iterable=(), container=None, **kwargs):
         self._iter = iter(iterable)
         self._container = container
 
@@ -28,7 +28,7 @@ class SequenceWrapper(AsyncReaderInterface, AsyncWriterInterface):
 
 
 class StdOut(AsyncWriterInterface):
-    def __init__(self, stdout):
+    def __init__(self, stdout, **kwargs):
         self._output = stdout
 
     async def send(self, data):
