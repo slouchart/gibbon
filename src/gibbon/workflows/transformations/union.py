@@ -16,15 +16,12 @@ class Union(ManyToMany):
                     break
 
                 for iq in self.in_queues:
-                    if eof_signals[iq] or iq.empty():
-                        continue
-
-                    row = await iq.get()
-
-                    if row is None:
-                        eof_signals[iq] = True
-                    else:
-                        for oq in self.out_queues:
-                            await oq.put(row)
+                    if not eof_signals[iq]:
+                        row = await iq.get()
+                        if row is None:
+                            eof_signals[iq] = True
+                        else:
+                            for oq in self.out_queues:
+                                await oq.put(row)
 
         return job
