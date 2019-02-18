@@ -7,7 +7,7 @@ class SelectorHasTooManyTargets(BaseBuildWarning):
 
 
 class Selector(OneToMany, StreamProcessor):
-    # TODO: add doc string
+    """Dispatch input rows according to some conditions"""
     def __init__(self, *args, conditions, **kwargs):
         self.conditions = conditions
         out_ports = len(self.conditions)

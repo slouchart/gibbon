@@ -2,7 +2,7 @@ from .base import OneToMany, StreamProcessor
 
 
 class Sorter(OneToMany, StreamProcessor):
-    # TODO: add doc string
+    """Take its input in a buffer, sort it and output its content as a downstream"""
     def __init__(self, *args, key, reverse=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.key = key
