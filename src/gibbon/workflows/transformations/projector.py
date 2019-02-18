@@ -42,7 +42,7 @@ class Split(OneToMany, StreamProcessor):
         while True:
             row = await self.get_row()
 
-            if self.eof_signal(row):
+            if self.may_stop_process(row):
                 break
 
             rows = self.func(row)

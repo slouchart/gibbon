@@ -1,4 +1,6 @@
 import unittest
+import logging
+
 from src import gibbon
 
 
@@ -24,6 +26,8 @@ class TestExpr(unittest.TestCase):
         self.cfg = gibbon.Configuration()
 
     def test_default(self):
+
+        self.wk_default_expr.validate(verbose=True)
 
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
@@ -52,4 +56,5 @@ class TestExpr(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()

@@ -36,7 +36,7 @@ class Aggregator(OneToMany, StreamProcessor):
         self.buffer = dict()
         while True:
             row = await self.get_row()
-            if self.eof_signal(row):
+            if self.may_stop_process(row):
                 break
 
             self.process_row(row)

@@ -12,7 +12,7 @@ class Sorter(OneToMany, StreamProcessor):
         buffer = []
         while True:
             row = await self.get_row()
-            if self.eof_signal(row):
+            if self.may_stop_process(row):
                 break
             else:
                 buffer.append(row)

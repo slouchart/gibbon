@@ -1,4 +1,6 @@
 import unittest
+import logging
+
 from src import gibbon
 
 
@@ -19,6 +21,8 @@ class TestSorter(unittest.TestCase):
         self.cfg = gibbon.Configuration()
 
     def test_sort_asc(self):
+
+        self.wk_sort_asc.validate(verbose=True)
 
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
@@ -41,4 +45,5 @@ class TestSorter(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()

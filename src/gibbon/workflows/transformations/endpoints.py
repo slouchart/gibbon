@@ -12,8 +12,8 @@ class AbstractEndPoint:
 class Source(Transformation, AbstractEndPoint, StreamProcessor):
     """A near abstract source of data. THe actual stream generator is provided at runtime by the Configuration feature
     the actual source must expose a asynchronous interface for async iter and async context management"""
-    def __init__(self, name, out_ports=1, **kwargs):
-        super().__init__(name, in_ports=0, out_ports=out_ports, **kwargs)
+    def __init__(self, *args, out_ports=1, **kwargs):
+        super().__init__(*args, in_ports=0, out_ports=out_ports, **kwargs)
         self.actual_source = None
         self.source_cfg = None
 
@@ -55,8 +55,8 @@ class Target(Transformation, AbstractEndPoint, StreamProcessor):
     The actual target is specified at runtime with the Configuration.
     The target will perform blocking operations unless it is defined as non-blocking.
     Therefore we have an implementation mismatch here :/"""
-    def __init__(self, name, **kwargs):
-        super().__init__(name, in_ports=1, out_ports=0, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, in_ports=1, out_ports=0, **kwargs)
         self.actual_target = None
         self.target_cfg = None
 
@@ -94,7 +94,7 @@ class Target(Transformation, AbstractEndPoint, StreamProcessor):
         async with self.actual_target(**self.target_cfg) as tgt:
             while True:
                 row = await self.get_row()
-                if self.eof_signal(row):
+                if self.may_stop_process(row):
                     break
                 await tgt.send(row)
 

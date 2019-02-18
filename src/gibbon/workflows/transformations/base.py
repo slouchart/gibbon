@@ -3,12 +3,12 @@ from ..exceptions import TargetAssignmentError
 
 
 class Transformation:
-    def __init__(self, name, in_ports, out_ports, **kwargs):
+    def __init__(self, name, in_ports, out_ports, *args, **kwargs):
         self.name = name
         self.in_ports = dict()
         self.out_ports = dict()
         self._initialize_ports(in_ports, out_ports)
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def id(self):
@@ -76,8 +76,8 @@ class Transformation:
 
 
 class OneToMany(Transformation):
-    def __init__(self, name, out_ports=1, **kwargs):
-        super().__init__(name, 1, out_ports, **kwargs)
+    def __init__(self, *args, out_ports=1, **kwargs):
+        super().__init__(*args, in_ports=1, out_ports=out_ports, **kwargs)
 
     def set_source(self, parent_transfo):
         assert self.in_ports[0] is None
@@ -86,8 +86,8 @@ class OneToMany(Transformation):
 
 
 class ManyToMany(Transformation):
-    def __init__(self, name, in_ports=1, out_ports=1, **kwargs):
-        super().__init__(name, in_ports, out_ports, **kwargs)
+    def __init__(self, *args, in_ports=1, out_ports=1, **kwargs):
+        super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
 
     def _extend_input_ports(self):
         n_port = len(self.in_ports)
@@ -117,7 +117,7 @@ class ManyToMany(Transformation):
 
 
 class StreamProcessor:
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.in_queues = []
         self.out_queues = []
 
@@ -128,7 +128,7 @@ class StreamProcessor:
     async def get_row(self):
         return await self.in_queues[0].get()
 
-    def eof_signal(self, row):
+    def may_stop_process(self, row):
         return row is None
 
     async def emit_eof(self):
@@ -149,7 +149,7 @@ class StreamProcessor:
     async def process_rows(self):
         while True:
             row = await self.get_row()
-            if self.eof_signal(row):
+            if self.may_stop_process(row):
                 break
             row = self.process_row(row)
             await self.emit_row(row)

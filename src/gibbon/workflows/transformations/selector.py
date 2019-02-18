@@ -11,7 +11,7 @@ class Selector(OneToMany, StreamProcessor):
     def __init__(self, *args, conditions, **kwargs):
         self.conditions = conditions
         out_ports = len(self.conditions)
-        super().__init__(*args, out_ports, **kwargs)
+        super().__init__(*args, out_ports=out_ports, **kwargs)
 
     def add_target(self, target_transfo):
         super().add_target(target_transfo)
@@ -21,7 +21,7 @@ class Selector(OneToMany, StreamProcessor):
     async def process_rows(self):
         while True:
             row = await self.get_row()
-            if self.eof_signal(row):
+            if self.may_stop_process(row):
                 break
 
             row_is_emitted = False
