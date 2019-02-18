@@ -1,4 +1,5 @@
 import unittest
+import logging
 
 from src import gibbon
 
@@ -25,7 +26,7 @@ class TestFilter(unittest.TestCase):
         self.cfg = gibbon.Configuration()
 
     def testAllRows(self):
-
+        self.wk_only_pos.validate(verbose=True)
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
@@ -35,6 +36,7 @@ class TestFilter(unittest.TestCase):
         self.assertSequenceEqual(self.results, self.data)
 
     def testOnlyPositive(self):
+        self.wk_only_pos.validate(verbose=True)
         self.results = []
 
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
@@ -62,6 +64,7 @@ class TestFilterString(unittest.TestCase):
         self.cfg = gibbon.Configuration()
 
     def testLenOverThree(self):
+        self.wk.validate(verbose=True)
         sink = []
         self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=zip(self.data))
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
@@ -73,4 +76,5 @@ class TestFilterString(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()

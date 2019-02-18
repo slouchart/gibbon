@@ -1,23 +1,14 @@
-from .base import OneToMany
+from .base import OneToMany, StreamProcessor
 
 
-class Expression(OneToMany):
-    # TODO: add doc string
-    def __init__(self, name, out_ports=1, func=lambda r: r):
-        super().__init__(name, out_ports)
+class Expression(OneToMany, StreamProcessor):
+    """Stream transformation that applies a function to each row
+    That function is provided though the parameter :func at initialization
+    and must accept a tuple and return a tuple"""
+    def __init__(self, name, out_ports=1, func=lambda r: r, **kwargs):
+        super().__init__(name, out_ports, **kwargs)
         self.func = func
 
-    def get_async_job(self):
-        async def job():
-            while True:
-                row = await self.in_queues[0].get()
-                if row is None:
-                    for q in self.out_queues:
-                        await q.put(row)
-                    break
+    def process_row(self, row):
+        return self.func(row)
 
-                row = self.func(row)
-
-                for q in self.out_queues:
-                    await q.put(row)
-        return job

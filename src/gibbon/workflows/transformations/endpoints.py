@@ -1,4 +1,4 @@
-from .base import Transformation
+from .base import Transformation, StreamProcessor
 from ..exceptions import TargetAssignmentError, MissingArgumentError
 from abc import abstractmethod
 
@@ -9,11 +9,11 @@ class AbstractEndPoint:
         raise NotImplementedError
 
 
-class Source(Transformation, AbstractEndPoint):
+class Source(Transformation, AbstractEndPoint, StreamProcessor):
     """A near abstract source of data. THe actual stream generator is provided at runtime by the Configuration feature
     the actual source must expose a asynchronous interface for async iter and async context management"""
-    def __init__(self, name, ports=1):
-        super().__init__(name, in_ports=0, out_ports=ports)
+    def __init__(self, name, out_ports=1, **kwargs):
+        super().__init__(name, in_ports=0, out_ports=out_ports, **kwargs)
         self.actual_source = None
         self.source_cfg = None
 
@@ -42,25 +42,21 @@ class Source(Transformation, AbstractEndPoint):
         self.actual_source = None
         self.source_cfg = None
 
-    def get_async_job(self):
-        async def job():
-            async with self.actual_source(**self.source_cfg) as src:
-                async for row in src:
-                    for q in self.out_queues:
-                        await q.put(row)
+    async def process_rows(self):
+        async with self.actual_source(**self.source_cfg) as src:
+            async for row in src:
+                await self.emit_row(row)
 
-                for q in self.out_queues:
-                    await q.put(None)  # EOF
-        return job
+            await self.emit_eof()
 
 
-class Target(Transformation, AbstractEndPoint):
+class Target(Transformation, AbstractEndPoint, StreamProcessor):
     """A near abstract model of a downstream target whether a file or a database.
     The actual target is specified at runtime with the Configuration.
     The target will perform blocking operations unless it is defined as non-blocking.
     Therefore we have an implementation mismatch here :/"""
-    def __init__(self, name):
-        super().__init__(name, in_ports=1, out_ports=0)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, in_ports=1, out_ports=0, **kwargs)
         self.actual_target = None
         self.target_cfg = None
 
@@ -94,15 +90,13 @@ class Target(Transformation, AbstractEndPoint):
         self.actual_target = None
         self.target_cfg = None
 
-    def get_async_job(self):
-        async def job():
-            async with self.actual_target(**self.target_cfg) as tgt:
-                while True:
-                    row = await self.in_queues[0].get()
-                    if row is None:
-                        break
-                    await tgt.send(row)
-        return job
+    async def process_rows(self):
+        async with self.actual_target(**self.target_cfg) as tgt:
+            while True:
+                row = await self.get_row()
+                if self.eof_signal(row):
+                    break
+                await tgt.send(row)
 
 
 def is_source(o):

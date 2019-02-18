@@ -1,7 +1,7 @@
-from .base import OneToMany
+from .base import OneToMany, StreamProcessor
 
 
-class Enumerator(OneToMany):
+class Enumerator(OneToMany, StreamProcessor):
 
     def __init__(self, *args, start_with=0, reset_after=-1, **kwargs):
         super().__init__(*args, **kwargs)
@@ -9,24 +9,16 @@ class Enumerator(OneToMany):
         self._index = self.start_with
         self.reset_after = reset_after
 
-    def get_async_job(self):
-        async def job():
+    def process_row(self, row):
+        row = tuple([self._index] + [f for f in row])
+
+        self._index += 1
+        if self._index > self.reset_after > 0:
             self._index = self.start_with
-            while True:
-                row = await self.in_queues[0].get()
 
-                if row is None:
-                    for oq in self.out_queues:
-                        await oq.put(None)
-                    break
+        return row
 
-                else:
-                    row = tuple([self._index] + [f for f in row])
-                    for oq in self.out_queues:
-                        await oq.put(row)
-                    self._index += 1
-                    if self._index > self.reset_after > 0:
-                        self._index = self.start_with
-
-        return job
+    async def process_rows(self):
+        self._index = self.start_with
+        await super().process_rows()
 

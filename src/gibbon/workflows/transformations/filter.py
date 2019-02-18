@@ -1,22 +1,12 @@
-from .base import OneToMany
+from .base import OneToMany, StreamProcessor
 
 
-class Filter(OneToMany):
+class Filter(OneToMany, StreamProcessor):
     # TODO: add doc string
-    def __init__(self, name, condition=lambda r: True, out_ports=1):
-        super().__init__(name, out_ports)
+    def __init__(self, name, out_ports=1, condition=lambda r: True, **kwargs):
+        super().__init__(name, out_ports, **kwargs)
         self.condition = condition
 
-    def get_async_job(self):
-        async def job():
-            while True:
-                row = await self.in_queues[0].get()
-                if row is None:
-                    for q in self.out_queues:
-                        await q.put(row)
-                    break
+    def can_emit_row(self, row):
+        return self.condition(row)
 
-                if self.condition(row):
-                    for q in self.out_queues:
-                        await q.put(row)
-        return job

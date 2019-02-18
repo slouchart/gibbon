@@ -1,27 +1,24 @@
-from .base import ManyToMany
+from .base import ManyToMany, StreamProcessor
 
 
-class Union(ManyToMany):
-    def __init__(self, name, in_ports=2, out_ports=1):
-        super().__init__(name, in_ports, out_ports)
+class Union(ManyToMany, StreamProcessor):
+    def __init__(self, *args, in_ports=2, out_ports=1, **kwargs):
+        super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
 
-    def get_async_job(self):
+    async def process_rows(self):
         eof_signals = {q: False for q in self.in_queues}
 
-        async def job():
-            while True:
-                if all(eof_signals.values()):
-                    for oq in self.out_queues:
-                        await oq.put(None)
-                    break
+        while True:
+            if all(eof_signals.values()):
+                break
 
-                for iq in self.in_queues:
-                    if not eof_signals[iq]:
-                        row = await iq.get()
-                        if row is None:
-                            eof_signals[iq] = True
-                        else:
-                            for oq in self.out_queues:
-                                await oq.put(row)
+            for iq in self.in_queues:
+                if not eof_signals[iq]:
+                    row = await iq.get()
+                    if row is None:
+                        eof_signals[iq] = True
+                    else:
+                        await self.emit_row(row)
 
-        return job
+        await self.emit_eof()
+

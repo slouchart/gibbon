@@ -1,4 +1,4 @@
-from .base import OneToMany
+from .base import OneToMany, StreamProcessor
 
 
 def row_count():
@@ -13,38 +13,40 @@ def simple_sum(field_index):
     return _sum_on
 
 
-class Aggregator(OneToMany):
+class Aggregator(OneToMany, StreamProcessor):
     '''This transformation accepts a stream of rows and compute some accumulators through a function
     the parameter :key accepts a row and return row that is a subset of the fields of the row
     the parameter :accumulator is a callable that accepts an input row and somme accumulator. It must output a row containing
     the values of each of the accumulator.
     the parameter :initializer is used to set the starting value of the accumulators as a tuple'''
-    def __init__(self, name, key, accumulator, initializer, out_ports=1):
-        super().__init__(name, out_ports)
+    def __init__(self, *args, key, accumulator, initializer, **kwargs):
+        super().__init__(*args, **kwargs)
         self.key = key
         self.func = accumulator
         self.initializer = initializer
+        self.buffer = None
 
-    def get_async_job(self):
-        async def job():
-            buffer = dict()
-            while True:
-                row = await self.in_queues[0].get()
-                if row is None:
-                    break
+    def process_row(self, row):
+        if self.key(row) in self.buffer:
+            self.buffer[self.key(row)] = self.func(row, *self.buffer[self.key(row)])
+        else:
+            self.buffer[self.key(row)] = self.func(row, *self.initializer)
 
-                if self.key(row) in buffer:
-                    buffer[self.key(row)] = self.func(row, *buffer[self.key(row)])
-                else:
-                    buffer[self.key(row)] = self.func(row, *self.initializer)
+    async def process_rows(self):
+        self.buffer = dict()
+        while True:
+            row = await self.get_row()
+            if self.eof_signal(row):
+                break
 
-            for key, value in buffer.items():
-                for q in self.out_queues:
-                    await q.put((*key, value[0]))
+            self.process_row(row)
 
-            for q in self.out_queues:
-                await q.put(None)
+        for key, value in self.buffer.items():
+            row = (*key, value[0],)
+            await self.emit_row(row)
 
-        return job
+        await self.emit_eof()
+
+
 
 

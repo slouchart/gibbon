@@ -1,4 +1,6 @@
 import unittest
+import logging
+
 from src import gibbon
 
 
@@ -68,11 +70,12 @@ class TestSplit(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split')
         self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, row_split, source='src')
+        self.w.add_transformation('splitter', gibbon.Split, func=row_split, source='src')
         self.w.add_target('tgt1', source='splitter')
         self.w.add_target('tgt2', source='splitter')
 
     def test_split(self):
+        self.w.validate(verbose=True)
         self.assertTrue(self.w.is_valid)
         src = [('row_id', 'row_data')]
         sink1 = []
@@ -97,39 +100,41 @@ class TestSplitUnbalancedOne(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split_unbalanced_1')
         self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, row_split_unbalanced_1, source='src')
+        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_1, source='src')
         self.w.add_target('tgt1', source='splitter')
         self.w.add_target('tgt2', source='splitter')
 
     def test_split_unbalanced(self):
-            self.assertTrue(self.w.is_valid)
-            src = [('row_id', 'row_data')]
-            sink1 = []
-            sink2 = []
+        self.w.validate(verbose=True)
+        self.assertTrue(self.w.is_valid)
+        src = [('row_id', 'row_data')]
+        sink1 = []
+        sink2 = []
 
-            cfg = gibbon.Configuration()
-            cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
-            cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
-            cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
+        cfg = gibbon.Configuration()
+        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
+        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
+        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
-            executor = gibbon.get_async_executor(shutdown=True)
-            self.w.prepare(cfg)
-            self.w.run(executor)
+        executor = gibbon.get_async_executor(shutdown=True)
+        self.w.prepare(cfg)
+        self.w.run(executor)
 
-            self.assertEqual(len(sink1), 1)
-            self.assertEqual(len(sink2), 0)
-            self.assertEqual(sink1[0], src[0])
+        self.assertEqual(len(sink1), 1)
+        self.assertEqual(len(sink2), 0)
+        self.assertEqual(sink1[0], src[0])
 
 
 class TestSplitUnbalancedTwo(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split_unbalanced_2')
         self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, row_split_unbalanced_2, source='src')
+        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_2, source='src')
         self.w.add_target('tgt1', source='splitter')
         self.w.add_target('tgt2', source='splitter')
 
     def test_split_unbalanced(self):
+        self.w.validate(verbose=True)
         self.assertTrue(self.w.is_valid)
         src = [('row_id', 'row_data', 'row_info')]
         sink1 = []
@@ -151,4 +156,5 @@ class TestSplitUnbalancedTwo(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()

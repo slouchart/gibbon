@@ -15,12 +15,15 @@ def get_async_executor(loop=None, shutdown=False):
 
 class AsyncExecutor(BaseExecutor):
 
-    def __init__(self, queue_factory, loop, shutdown=True):
+    def __init__(self, queue_factory, loop, executor=None, shutdown=True):
         super().__init__(queue_factory)
         self._tasks = []
         self.loop = loop
         self.shutdown = shutdown
+        self.executor = executor
         assert self.loop is not None
+        if self.executor is not None:
+            self.loop.set_default_executor(self.executor)
 
     def create_queue(self):
         return self._queue_factory(loop=self.loop)
@@ -68,4 +71,4 @@ class AsyncExecutor(BaseExecutor):
         self._jobs[coro_func] = (transformation.name, type(transformation).__name__)
 
     def complete_runtime_configuration(self, transformation):
-        transformation.configure(loop=self.loop, executor=None)
+        transformation.configure(loop=self.loop, executor=self.executor)

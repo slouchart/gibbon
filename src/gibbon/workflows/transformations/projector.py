@@ -1,59 +1,55 @@
 from .base import ManyToMany
 from .base import OneToMany
+from .base import StreamProcessor
 
 
-class Concat(ManyToMany):
-    def __init__(self, name, in_ports=2, out_ports=1):
-        super().__init__(name, in_ports, out_ports)
+class Concat(ManyToMany, StreamProcessor):
+    def __init__(self, *args, in_ports=2, out_ports=1, **kwargs):
+        super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
         self.buffers = dict()
 
-    def get_async_job(self):
-        async def job():
-            eof_signals = {q: False for q in self.in_queues}
-            while True:
-                buffer = []
-                for iq in [iq for iq, sig in eof_signals.items() if not sig]:
-                    row = await iq.get()
-                    if row is None:
-                        eof_signals[iq] = True
-                    else:
-                        buffer.append(row)
-
-                if len(buffer):
-                    # we can emit
-                    concat_row = []
-                    for row in buffer:
-                        concat_row += list(row)
-                    concat_row = tuple(concat_row)
-                    for oq in self.out_queues:
-                        await oq.put(concat_row)
+    async def process_rows(self):
+        eof_signals = {q: False for q in self.in_queues}
+        while True:
+            buffer = []
+            for iq in [iq for iq, sig in eof_signals.items() if not sig]:
+                row = await iq.get()
+                if row is None:
+                    eof_signals[iq] = True
                 else:
-                    for oq in self.out_queues:
-                        await oq.put(None)
-                    break
+                    buffer.append(row)
 
-        return job
+            if len(buffer):
+                # we can emit
+                concat_row = []
+                for row in buffer:
+                    concat_row += list(row)
+                concat_row = tuple(concat_row)
+                for oq in self.out_queues:
+                    await oq.put(concat_row)
+            else:
+                for oq in self.out_queues:
+                    await oq.put(None)
+                break
 
 
-class Split(OneToMany):
-    def __init__(self, name, func, out_ports=2):
-        super().__init__(name, out_ports)
+class Split(OneToMany, StreamProcessor):
+    def __init__(self, *args, func, **kwargs):
+        super().__init__(*args, out_ports=2, **kwargs)
         self.func = func
 
-    def get_async_job(self):
-        async def job():
-            while True:
-                row = await self.in_queues[0].get()
+    async def process_rows(self):
+        while True:
+            row = await self.get_row()
 
-                if row is None:
-                    for oq in self.out_queues:
-                        await oq.put(None)
-                    break
-                else:
-                    rows = self.func(row)
-                    for row, oq in zip(rows, self.out_queues):
-                        await oq.put(row)
+            if self.eof_signal(row):
+                break
 
-        return job
+            rows = self.func(row)
+            for row, oq in zip(rows, self.out_queues):
+                await oq.put(row)
+
+        await self.emit_eof()
+
 
 

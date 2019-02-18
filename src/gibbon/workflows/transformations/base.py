@@ -3,13 +3,12 @@ from ..exceptions import TargetAssignmentError
 
 
 class Transformation:
-    def __init__(self, name, in_ports, out_ports):
+    def __init__(self, name, in_ports, out_ports, **kwargs):
         self.name = name
         self.in_ports = dict()
         self.out_ports = dict()
         self._initialize_ports(in_ports, out_ports)
-        self.in_queues = []
-        self.out_queues = []
+        super().__init__(**kwargs)
 
     @property
     def id(self):
@@ -69,39 +68,26 @@ class Transformation:
         n_port = self._get_next_available_output_port()
         self.out_ports[n_port] = target_transfo
 
-    def share_queue_with_target(self, target, queue):
-        assert target in self.out_ports.values()
-        self.out_queues.append(queue)
-        target.in_queues.append(queue)
-
     def configure(self, *args, **kwargs):
         pass
 
     def reset(self):
         pass
 
-    @abstractmethod
-    def get_async_job(self):
-        raise NotImplementedError
-
 
 class OneToMany(Transformation):
-    def __init__(self, name, out_ports=1):
-        super().__init__(name, 1, out_ports)
+    def __init__(self, name, out_ports=1, **kwargs):
+        super().__init__(name, 1, out_ports, **kwargs)
 
     def set_source(self, parent_transfo):
         assert self.in_ports[0] is None
         self.in_ports[0] = parent_transfo
         parent_transfo.add_target(self)
 
-    @abstractmethod
-    def get_async_job(self):
-        raise NotImplementedError
-
 
 class ManyToMany(Transformation):
-    def __init__(self, name, in_ports=1, out_ports=1):
-        super().__init__(name, in_ports, out_ports)
+    def __init__(self, name, in_ports=1, out_ports=1, **kwargs):
+        super().__init__(name, in_ports, out_ports, **kwargs)
 
     def _extend_input_ports(self):
         n_port = len(self.in_ports)
@@ -129,13 +115,48 @@ class ManyToMany(Transformation):
             self.in_ports[n_port] = source
             source.add_target(self)
 
-    @abstractmethod
+
+class StreamProcessor:
+    def __init__(self, **kwargs):
+        self.in_queues = []
+        self.out_queues = []
+
+    def share_queue_with_target(self, target, queue):
+        self.out_queues.append(queue)
+        target.in_queues.append(queue)
+
+    async def get_row(self):
+        return await self.in_queues[0].get()
+
+    def eof_signal(self, row):
+        return row is None
+
+    async def emit_eof(self):
+        for q in self.out_queues:
+            await q.put(None)
+
+    def process_row(self, row):
+        return row
+
+    def can_emit_row(self, row):
+        return True
+
+    async def emit_row(self, row):
+        if self.can_emit_row(row):
+            for q in self.out_queues:
+                await q.put(row)
+
+    async def process_rows(self):
+        while True:
+            row = await self.get_row()
+            if self.eof_signal(row):
+                break
+            row = self.process_row(row)
+            await self.emit_row(row)
+
+        await self.emit_eof()
+
     def get_async_job(self):
-        raise NotImplementedError
-
-
-
-
-
+        return self.process_rows
 
 
