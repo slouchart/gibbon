@@ -2,6 +2,16 @@ from .base import OneToMany, StreamProcessor
 
 
 class Normalizer(OneToMany, StreamProcessor):
+    """
+    Given a row of the form: 'Norman', 'MSc.', '50', '70', '25')
+    outputs a stream of rows of the form:
+    [('Norman', 'MSc.', 'Maths', '50'),
+     ('Norman', 'MSc.', 'CS', '70'),
+     ('Norman', 'MSc.', 'Physics', '25')]
+
+     where the :key parameter governs how many head fields compose the key
+     and the :entries parameter defines the expected missing values
+    """
     def __init__(self, *args, key, entries, **kwargs):
         super().__init__(*args, **kwargs)
         self.key = key

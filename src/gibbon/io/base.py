@@ -3,6 +3,9 @@ from abc import abstractmethod
 
 class AsyncReaderInterface:
 
+    def __init__(self, *args, **kwargs):
+        ...
+
     @abstractmethod
     def __aiter__(self):
         return self
@@ -21,6 +24,10 @@ class AsyncReaderInterface:
 
 
 class AsyncWriterInterface:
+
+    def __init__(self, *args, **kwargs):
+        ...
+
     @abstractmethod
     async def send(self, data):
         ...

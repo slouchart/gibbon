@@ -40,5 +40,3 @@ class ConfigurationError(BaseException):
 
 class MissingArgumentError(ConfigurationError):
     pass
-
-

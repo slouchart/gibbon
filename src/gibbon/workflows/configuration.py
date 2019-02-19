@@ -25,4 +25,3 @@ class Configuration:
     def reset_configuration(self, transformation):
         if transformation.name in self._cfg:
             transformation.reset()
-

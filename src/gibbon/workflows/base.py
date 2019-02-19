@@ -67,9 +67,9 @@ class DirectedAcyclicGraph:
             else:
                 callback(NodeReachabilityError, f"Transformation {node.name} unconnected to a target")
 
-        for node in self.nodes:
-            _check_path_to_source(node)
-            _check_path_to_target(node)
+        for _node in self.nodes:
+            _check_path_to_source(_node)
+            _check_path_to_target(_node)
 
     def bfs_traverse_links(self, callback):
         queue = []

@@ -5,6 +5,7 @@ class SequenceWrapper(AsyncReaderInterface, AsyncWriterInterface):
     def __init__(self, iterable=(), container=None, **kwargs):
         self._iter = iter(iterable)
         self._container = container
+        super().__init__(**kwargs)
 
     def __aiter__(self):
         return self
@@ -30,6 +31,7 @@ class SequenceWrapper(AsyncReaderInterface, AsyncWriterInterface):
 class StdOut(AsyncWriterInterface):
     def __init__(self, stdout, **kwargs):
         self._output = stdout
+        super().__init__(**kwargs)
 
     async def send(self, data):
         print(data, file=self._output)
@@ -39,4 +41,3 @@ class StdOut(AsyncWriterInterface):
 
     async def __aexit__(self, *args):
         pass
-
