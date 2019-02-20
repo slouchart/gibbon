@@ -1,9 +1,11 @@
 from abc import abstractmethod
+from typing import *
+
 from ..exceptions import TargetAssignmentError
 
 
 class Transformation:
-    def __init__(self, name, in_ports, out_ports, *args, **kwargs):
+    def __init__(self, name: str, in_ports: int, out_ports: int, *args, **kwargs):
         self.name = name
         self.in_ports = dict()
         self.out_ports = dict()
@@ -11,7 +13,7 @@ class Transformation:
         super().__init__(*args, **kwargs)
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.name
 
     def _initialize_ports(self, in_ports, out_ports):
@@ -41,32 +43,32 @@ class Transformation:
         return n_port
 
     @abstractmethod
-    def set_source(self, parent_transfo):
+    def set_source(self, parent):
         raise NotImplementedError
 
     @property
-    def has_source(self):
+    def has_source(self) -> int:
         return len(self.sources)
 
     @property
-    def sources(self):
+    def sources(self) -> MutableSequence:
         return [n for n in self.in_ports.values() if n is not None]
 
     @property
-    def has_target(self):
+    def has_target(self) -> int:
         return len(self.targets)
 
     @property
-    def targets(self):
+    def targets(self) -> MutableSequence:
         return [n for n in self.out_ports.values() if n is not None]
 
-    def add_target(self, target_transfo):
+    def add_target(self, target):
 
-        if target_transfo in self.out_ports.values():
-            raise TargetAssignmentError(f'Source {self.name} already connected to target {target_transfo.name}')
+        if target in self.out_ports.values():
+            raise TargetAssignmentError(f'Source {self.name} already connected to target {target.name}')
 
         n_port = self._get_next_available_output_port()
-        self.out_ports[n_port] = target_transfo
+        self.out_ports[n_port] = target
 
     def configure(self, *args, **kwargs):
         pass
@@ -76,17 +78,17 @@ class Transformation:
 
 
 class OneToMany(Transformation):
-    def __init__(self, *args, out_ports=1, **kwargs):
+    def __init__(self, *args, out_ports: int = 1, **kwargs) -> None:
         super().__init__(*args, in_ports=1, out_ports=out_ports, **kwargs)
 
-    def set_source(self, parent_transfo):
+    def set_source(self, parent):
         assert self.in_ports[0] is None
-        self.in_ports[0] = parent_transfo
-        parent_transfo.add_target(self)
+        self.in_ports[0] = parent
+        parent.add_target(self)
 
 
 class ManyToMany(Transformation):
-    def __init__(self, *args, in_ports=1, out_ports=1, **kwargs):
+    def __init__(self, *args, in_ports: int = 1, out_ports: int = 1, **kwargs) -> None:
         super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
 
     def _extend_input_ports(self):
@@ -108,16 +110,17 @@ class ManyToMany(Transformation):
 
         return n_port
 
-    def set_source(self, *parent_transfos):
+    def set_source(self, *parents):
         # expect a tuple of sources transformations
-        for source in parent_transfos:
+        for source in parents:
             n_port = self._get_next_available_input_port()
             self.in_ports[n_port] = source
             source.add_target(self)
 
 
 class StreamProcessor:
-    def __init__(self, *args, **kwargs):
+    """Mixin that deals with the runtime behaviour of a transformation"""
+    def __init__(self, *args, **kwargs) -> None:
         self.in_queues = []
         self.out_queues = []
 
@@ -158,5 +161,4 @@ class StreamProcessor:
 
     def get_async_job(self):
         return self.process_rows
-
 

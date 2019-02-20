@@ -51,8 +51,8 @@ class TestReach2(unittest.TestCase):
 
     def test_reach_3(self):
         self.wks[2].add_source('src')
-        self.wks[2].add_transformation('exp1', gibbon.Expression, source='src')
-        self.wks[2].add_transformation('exp2', gibbon.Expression, source='src')
+        self.wks[2].add_transformation('exp1', gibbon.Expression, sources='src')
+        self.wks[2].add_transformation('exp2', gibbon.Expression, sources='src')
         self.wks[2].add_target('tgt1', source='exp2')
 
         self.assertFalse(self.wks[2].is_valid)

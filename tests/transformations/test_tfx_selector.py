@@ -29,7 +29,7 @@ class TestSelector(unittest.TestCase):
 
         conditions = (is_positive_or_zero, is_negative)
         self.wk_sel_bin.add_transformation('sel', gibbon.Selector,
-                                           source='src', conditions=conditions)
+                                           sources='src', conditions=conditions)
         self.wk_sel_bin.add_target('tgt1', source='sel')
         self.wk_sel_bin.add_target('tgt2', source='sel')
 
@@ -38,7 +38,7 @@ class TestSelector(unittest.TestCase):
 
         conditions = (is_positive, is_negative, is_zero)
         self.wk_sel_mul.add_transformation('sel', gibbon.Selector,
-                                           source='src', conditions=conditions)
+                                           sources='src', conditions=conditions)
         self.wk_sel_mul.add_target('tgt1', source='sel')
         self.wk_sel_mul.add_target('tgt2', source='sel')
         self.wk_sel_mul.add_target('tgt3', source='sel')
@@ -47,7 +47,7 @@ class TestSelector(unittest.TestCase):
         self.wk_sel_shc = gibbon.Workflow('short_circuit_selector')
         self.wk_sel_shc.add_source('src')
         self.wk_sel_shc.add_transformation('sel', gibbon.Selector,
-                                           source='src', conditions=conditions)
+                                           sources='src', conditions=conditions)
         self.wk_sel_shc.add_target('tgt1', source='sel')
         self.wk_sel_shc.add_target('tgt2', source='sel')
 
@@ -55,7 +55,7 @@ class TestSelector(unittest.TestCase):
         self.wk_sel_def = gibbon.Workflow('default_selector')
         self.wk_sel_def.add_source('src')
         self.wk_sel_def.add_transformation('sel', gibbon.Selector,
-                                           source='src', conditions=conditions)
+                                           sources='src', conditions=conditions)
         self.wk_sel_def.add_target('tgt1', source='sel')
         self.wk_sel_def.add_target('tgt2', source='sel')
 
@@ -63,20 +63,20 @@ class TestSelector(unittest.TestCase):
         self.wk_sel_osp1 = gibbon.Workflow('out_port_specified')
         self.wk_sel_osp1.add_source('src')
         self.wk_sel_osp1.add_transformation('sel', gibbon.Selector, out_ports=1,
-                                            source='src', conditions=conditions)
+                                            sources='src', conditions=conditions)
         self.wk_sel_osp1.add_target('tgt1', source='sel')
         self.wk_sel_osp1.add_target('tgt2', source='sel')
 
         conditions = (is_positive, is_negative)
         self.wk_sel_osp2 = gibbon.Workflow('no_out_ports_specified')
         self.wk_sel_osp2.add_source('src')
-        self.wk_sel_osp2.add_transformation('sel', gibbon.Selector, source='src', conditions=conditions)
+        self.wk_sel_osp2.add_transformation('sel', gibbon.Selector, sources='src', conditions=conditions)
         self.wk_sel_osp2.add_target('tgt1', source='sel')
         self.wk_sel_osp2.add_target('tgt2', source='sel')
 
         self.wk_sel_wd = gibbon.Workflow('with_default')
         self.wk_sel_wd.add_source('src')
-        self.wk_sel_wd.add_transformation('sel', gibbon.Selector, source='src',
+        self.wk_sel_wd.add_transformation('sel', gibbon.Selector, sources='src',
                                           conditions=conditions)
         self.wk_sel_wd.add_target('tgt1', source='sel')
         self.wk_sel_wd.add_target('tgt2', source='sel')

@@ -11,7 +11,7 @@ class TestNormalizerOne(unittest.TestCase):
         self.w.add_target('tgt')
 
     def test_connect_normalizer(self):
-        self.w.add_transformation('normalize', gibbon.Normalizer, source='src', key=0, entries=[])
+        self.w.add_transformation('normalize', gibbon.Normalizer, sources='src', key=0, entries=[])
         self.w.connect('normalize', 'tgt')
         self.assertTrue(self.w.is_valid)
 
@@ -22,7 +22,7 @@ class TestNormalizerTwo(unittest.TestCase):
         self.w.add_source('src')
         self.w.add_target('tgt')
 
-        self.w.add_transformation('normalize', gibbon.Normalizer, source='src',
+        self.w.add_transformation('normalize', gibbon.Normalizer, sources='src',
                                   key=2, entries=['Maths', 'CS', 'Physics'])
         self.w.connect('normalize', 'tgt')
 

@@ -1,5 +1,6 @@
-from src import gibbon
 import unittest
+
+from src import gibbon
 
 
 class TestCreate(unittest.TestCase):
@@ -12,7 +13,6 @@ class TestCreate(unittest.TestCase):
         self.expected_attrs = ('add_source',
                                'add_target',
                                'add_transformation',
-                               'add_complex_transformation',
                                'prepare', 'schedule', 'run')
 
     def test_create(self):

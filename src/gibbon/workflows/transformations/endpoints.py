@@ -73,7 +73,7 @@ class Target(Transformation, AbstractEndPoint, StreamProcessor):
     def targets(self):
         return []
 
-    def add_target(self, target_transfo):
+    def add_target(self, target):
         raise TargetAssignmentError(f"{self.name}: cannot assign a target to a Target")
 
     def configure(self, *args, **kwargs):

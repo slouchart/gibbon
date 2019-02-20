@@ -26,7 +26,7 @@ class TestEnumerator2(unittest.TestCase):
 
         self.w = gibbon.Workflow('test_enumerator')
         self.w.add_source('src')
-        self.w.add_transformation('enum', gibbon.Enumerator, source='src')
+        self.w.add_transformation('enum', gibbon.Enumerator, sources='src')
         self.w.add_target('tgt', source='enum')
 
         self.cfg = gibbon.Configuration()
@@ -50,7 +50,7 @@ class TestEnumerator3(unittest.TestCase):
 
         self.w = gibbon.Workflow('test_enumerator')
         self.w.add_source('src')
-        self.w.add_transformation('enum', gibbon.Enumerator, source='src', start_with=1, reset_after=1)
+        self.w.add_transformation('enum', gibbon.Enumerator, sources='src', start_with=1, reset_after=1)
         self.w.add_target('tgt', source='enum')
 
         self.cfg = gibbon.Configuration()

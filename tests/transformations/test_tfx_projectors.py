@@ -21,10 +21,11 @@ class TestConcat(unittest.TestCase):
         self.w = gibbon.Workflow('concat')
         self.w.add_source('src1')
         self.w.add_source('src2')
-        self.w.add_complex_transformation('concat', gibbon.Concat, sources=('src1', 'src2'))
+        self.w.add_transformation('concat', gibbon.Concat, sources=('src1', 'src2'))
         self.w.add_target('tgt', source='concat')
 
     def test_concat(self):
+        self.w.validate(verbose=True)
         self.assertTrue(self.w.is_valid)
 
         src1 = [('row_id',)]
@@ -70,7 +71,7 @@ class TestSplit(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split')
         self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, func=row_split, source='src')
+        self.w.add_transformation('splitter', gibbon.Split, func=row_split, sources='src')
         self.w.add_target('tgt1', source='splitter')
         self.w.add_target('tgt2', source='splitter')
 
@@ -100,7 +101,7 @@ class TestSplitUnbalancedOne(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split_unbalanced_1')
         self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_1, source='src')
+        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_1, sources='src')
         self.w.add_target('tgt1', source='splitter')
         self.w.add_target('tgt2', source='splitter')
 
@@ -129,7 +130,7 @@ class TestSplitUnbalancedTwo(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split_unbalanced_2')
         self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_2, source='src')
+        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_2, sources='src')
         self.w.add_target('tgt1', source='splitter')
         self.w.add_target('tgt2', source='splitter')
 

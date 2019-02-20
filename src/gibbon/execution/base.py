@@ -23,11 +23,11 @@ class BaseExecutor:
         raise NotImplementedError
 
     @abstractmethod
-    async def schedule(self, name):
+    async def schedule(self, name, *args, **kwargs):
         raise NotImplementedError
 
     @abstractmethod
-    def run(self, name):
+    def run(self, name, *args, **kwargs):
         raise NotImplementedError
 
 

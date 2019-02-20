@@ -1,9 +1,13 @@
-from .base import BaseExecutor
 import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor as ThreadPoolExecutor
+from typing import *
+
+from .base import BaseExecutor
+from ..workflows.transformations import StreamProcessor
 
 
-def get_async_executor(loop=None, shutdown=False):
+def get_async_executor(loop: asyncio.AbstractEventLoop = None, shutdown: bool = False) -> BaseExecutor:
     if loop is not None and shutdown:
         logging.warning(f'The provided event loop will be shut down')
 
@@ -15,7 +19,9 @@ def get_async_executor(loop=None, shutdown=False):
 
 class AsyncExecutor(BaseExecutor):
 
-    def __init__(self, queue_factory, loop, executor=None, shutdown=True):
+    def __init__(self, queue_factory: Union[Type[asyncio.Queue], Callable[[asyncio.AbstractEventLoop], asyncio.Queue]],
+                 loop: asyncio.AbstractEventLoop,
+                 executor: ThreadPoolExecutor = None, shutdown: bool = True) -> None:
         super().__init__(queue_factory)
         self._tasks = []
         self.loop = loop
@@ -25,10 +31,10 @@ class AsyncExecutor(BaseExecutor):
         if self.executor is not None:
             self.loop.set_default_executor(self.executor)
 
-    def create_queue(self):
+    def create_queue(self) -> asyncio.Queue:
         return self._queue_factory(loop=self.loop)
 
-    async def schedule(self, name):
+    async def schedule(self, name: str, *args, **kwargs) -> bool:
 
         for coro_func, infos in self._jobs.items():
             logging.info(f'job {name}, starting transformation {infos[0]} ({infos[1]})')
@@ -51,7 +57,7 @@ class AsyncExecutor(BaseExecutor):
 
         return exec_ok
 
-    def run(self, name):
+    def run(self, name: str, *args, **kwargs) -> None:
 
         logging.info(f'Start asynchronous job execution for workflow {name}')
         exec_ok = self.loop.run_until_complete(self.schedule(name))
@@ -66,9 +72,13 @@ class AsyncExecutor(BaseExecutor):
             self.loop.stop()
             self.loop.close()
 
-    def create_job_from(self, transformation):
+    def create_job_from(self, transformation: StreamProcessor) -> None:
         coro_func = transformation.get_async_job()
-        self._jobs[coro_func] = (transformation.name, type(transformation).__name__)
+        name = getattr(transformation, 'name', '<no name>')
+        self._jobs[coro_func] = (name, type(transformation).__name__)
 
-    def complete_runtime_configuration(self, transformation):
-        transformation.configure(loop=self.loop, executor=self.executor)
+    def complete_runtime_configuration(self, transformation: StreamProcessor) -> None:
+        def dummy(*_):
+            ...
+        callback = getattr(transformation, 'configure', dummy)
+        callback(loop=self.loop, executor=self.executor)

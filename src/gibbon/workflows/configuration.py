@@ -1,16 +1,18 @@
 import logging
 
+from .transformations.base import Transformation
+
 
 class Configuration:
-    def __init__(self):
+    def __init__(self) -> None:
         self._cfg = dict()
 
-    def add_configuration(self, name, *args, **kwargs):
+    def add_configuration(self, name: str, *args, **kwargs) -> None:
         if name in self._cfg:
             logging.warning(f'Attempting to supersede configuration of {name}')
         self._cfg[name] = (args, kwargs)
 
-    def set_configuration(self, transformation):
+    def set_configuration(self, transformation: Transformation) -> None:
         try:
             if transformation.name in self._cfg:
                 transformation.configure(*self._cfg[transformation.name][0], **self._cfg[transformation.name][1])
@@ -22,6 +24,6 @@ class Configuration:
         except KeyError as e:
             logging.error(f'{str(e)} Probable missing argument from configuration of {transformation.name}')
 
-    def reset_configuration(self, transformation):
+    def reset_configuration(self, transformation: Transformation) -> None:
         if transformation.name in self._cfg:
             transformation.reset()

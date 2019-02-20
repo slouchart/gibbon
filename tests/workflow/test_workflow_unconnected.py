@@ -9,7 +9,7 @@ class TestUnconnectedWorkflow(unittest.TestCase):
         w.add_source('a_source')
         w.add_target('a_target')
         w.add_transformation('a_filter', gibbon.Filter)
-        w.add_complex_transformation('union', gibbon.Union)
+        w.add_transformation('union', gibbon.Union)
 
         self.assertFalse(w.is_valid)
 
@@ -18,7 +18,7 @@ class TestUnconnectedWorkflow(unittest.TestCase):
         w.add_source('a_source')
         w.add_target('a_target')
         w.add_transformation('a_filter', gibbon.Filter)
-        w.add_complex_transformation('union', gibbon.Union)
+        w.add_transformation('union', gibbon.Union)
 
         w.connect('a_source', 'a_filter', 'union')
         w.connect('a_filter', 'union')
@@ -30,7 +30,7 @@ class TestUnconnectedWorkflow(unittest.TestCase):
         w = gibbon.Workflow('unconnected')
         w.add_source('a_source')
         w.add_target('a_target')
-        w.add_transformation('a_filter', gibbon.Filter, source='a_source', targets=('a_target',))
+        w.add_transformation('a_filter', gibbon.Filter, sources='a_source', targets=('a_target',))
 
         self.assertTrue(w.is_valid)
 
@@ -39,7 +39,7 @@ class TestUnconnectedWorkflow(unittest.TestCase):
         w.add_source('a_source')
         w.add_source('another_one')
         w.add_target('a_target')
-        w.add_complex_transformation('union', gibbon.Union,
+        w.add_transformation('union', gibbon.Union,
                                      sources=('a_source', 'another_one'), targets=('a_target',))
 
         self.assertTrue(w.is_valid)

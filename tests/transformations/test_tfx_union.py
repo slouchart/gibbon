@@ -11,7 +11,7 @@ class TestUnionCreate(unittest.TestCase):
         self.w.add_target('tgt')
 
     def test_create(self):
-        self.w.add_complex_transformation('union', gibbon.Union)
+        self.w.add_transformation('union', gibbon.Union)
         self.w.connect('src1', 'union')
         self.w.connect('src2', 'union')
         self.w.connect('union', 'tgt')
@@ -24,7 +24,7 @@ class TestUnionRun(unittest.TestCase):
         self.w = gibbon.Workflow('test_union')
         self.w.add_source('src1')
         self.w.add_source('src2')
-        self.w.add_complex_transformation('union', gibbon.Union, sources=('src1', 'src2',))
+        self.w.add_transformation('union', gibbon.Union, sources=('src1', 'src2',))
         self.w.add_target('tgt', source='union')
 
     def test_union(self):

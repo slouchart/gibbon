@@ -13,8 +13,8 @@ class Selector(OneToMany, StreamProcessor):
         out_ports = len(self.conditions)
         super().__init__(*args, out_ports=out_ports, **kwargs)
 
-    def add_target(self, target_transfo):
-        super().add_target(target_transfo)
+    def add_target(self, target):
+        super().add_target(target)
         if len(self.out_ports) > len(self.conditions)+1:
             raise SelectorHasTooManyTargets(f'Selector {self.name} has too many targets')
 
