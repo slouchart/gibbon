@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 
 from ..util import Namable
-from ..exceptions import InvalidNameError, NodeNotFound  # exceptions
+from ..exceptions import NodeNotFound  # exceptions
 from ..exceptions import ParentNodeReset, DuplicatedSource  # warnings
 
 
@@ -81,7 +81,6 @@ class UpStreamable(Connectable):
             if v is target:
                 del self.out_ports[k]
                 raise ParentNodeReset('Attempt made to reset the target')
-                break
         else:
             raise NodeNotFound('Target to reset was not found')
 

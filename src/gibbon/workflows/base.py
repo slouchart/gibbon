@@ -16,32 +16,24 @@ class DirectedAcyclicGraph:
         self._nodes = dict()
         self._roots = []
 
-    def create_node(self, name: Text,
-                    cls: Union[Type[Transformation], Type[Connectable]],
-                    parent: Union[Connectable, Tuple[Connectable], None],
-                    *args: Any,
-                    **kwargs: Any) -> Union[Connectable, None]:
+    def insert_node(self, key: str,
+                    element: Connectable,
+                    parent: Union[Connectable,
+                                  Tuple[Connectable], None]) -> None:
 
-        if not Namable.check_valid_name(name):
-            raise InvalidNameError(f'Object name is invalid: {name}')
-
-        node = cls(name, *args, **kwargs)
-
-        if node is None:
-            return None
+        if element is None:
+            return
 
         if parent:
             if isinstance(parent, list):
-                node.set_sources(*parent)
+                element.set_sources(*parent)
             else:
-                node.set_source(parent)
+                element.set_source(parent)
 
-        if is_source(node):
-            self._roots.append(node)
+        if is_source(element):
+            self._roots.append(element)
 
-        self._nodes[node.name] = node
-
-        return node
+        self._nodes[key] = element
 
     def __getitem__(self, item: str) -> Transformation:
         return self._nodes[item]
@@ -131,6 +123,13 @@ class Workflow(Namable):
         if not Namable.check_valid_name(self.name):
             raise InvalidNameError(f'Object name is invalid: {self.name}')
 
+    @staticmethod
+    def _element_factory(cls, name, *args, **kwargs):
+        if not Namable.check_valid_name(name):
+            raise InvalidNameError(f'Object name is invalid: {name}')
+
+        return cls(name, *args, **kwargs)
+
     def get_node_by_name(self, name: str) -> Union[Transformation, None]:
         if name not in self._dag:
             raise NodeNotFound(f"Node {name} not found")
@@ -138,25 +137,25 @@ class Workflow(Namable):
             return self._dag[name]
 
     def add_source(self, name: str) -> None:
+        element = self._element_factory(Source, name)
+        self._dag.insert_node(name, element, None)
         self._requires_validation = True
-        self._dag.create_node(name, Source, None)
 
     def add_target(self, name: str, source: str = None) -> None:
-        self._requires_validation = True
         if source:
             parent = self.get_node_by_name(source)
         else:
             parent = None
-        self._dag.create_node(name, Target, parent)
+        element = self._element_factory(Target, name)
+        self._dag.insert_node(name, element, parent)
+        self._requires_validation = True
 
     def add_transformation(self, name: Text,
                            cls: Type[Transformation],
                            *args,
-                           sources: Union[Tuple, str] = None,
-                           targets: Tuple = (),
+                           sources: Union[Tuple[str], str] = None,
+                           targets: Tuple[str] = (),
                            **kwargs) -> None:
-
-        self._requires_validation = True
 
         parents = None
         if sources and isinstance(sources, tuple):
@@ -169,12 +168,15 @@ class Workflow(Namable):
             source = str(sources)
             parents = self.get_node_by_name(source)
 
-        node = self._dag.create_node(name, cls, parents, *args, **kwargs)
+        element = self._element_factory(cls, name, *args, **kwargs)
+        self._dag.insert_node(name, element, parents)
 
         for target in targets:
             if target:
                 target = self.get_node_by_name(target)
-                target.set_source(node)
+                target.set_source(element)
+
+        self._requires_validation = True
 
     def connect(self, source: str, *targets: str) -> None:
         if source:
@@ -196,7 +198,7 @@ class Workflow(Namable):
     def validate(self, verbose: bool = False, silent: bool = False) -> None:
 
         if not self._requires_validation:
-            logging.info(f"Workflow {self.name} doesn't seem to require validation")
+            logging.info(f"Workflow {self.name} does not seem to require validation")
 
         logging.info(f"Validating workflow {self.name}")
 
