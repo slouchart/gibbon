@@ -3,7 +3,8 @@ from abc import abstractmethod
 
 
 from ..util import Namable
-from ..exceptions import InvalidNameError
+from ..exceptions import InvalidNameError, NodeNotFound  # exceptions
+from ..exceptions import ParentNodeReset, DuplicatedSource  # warnings
 
 
 class Connectable:
@@ -79,7 +80,10 @@ class UpStreamable(Connectable):
         for k, v in self.out_ports.items():
             if v is target:
                 del self.out_ports[k]
+                raise ParentNodeReset('Attempt made to reset the target')
                 break
+        else:
+            raise NodeNotFound('Target to reset was not found')
 
     def _initialize_output_ports(self, out_ports):
         for p in range(out_ports):
@@ -137,11 +141,11 @@ class NotUpStreamable(Connectable):
 
     def add_target(self, target):
         # Invoking 'add_target' makes no sense
-        ...
+        raise TypeError("Cannot invoke 'add_target' on a NotUpStreamable object")
 
     def reset_target(self, target):
         # Invoking 'reset_target' makes no sense
-        ...
+        raise TypeError("Cannot invoke 'reset_target' on a NotUpStreamable object")
 
 
 class MultiDownStreamable(Connectable):
@@ -155,6 +159,10 @@ class MultiDownStreamable(Connectable):
     def set_sources(self, *parents):
         # expect a tuple of sources transformations
         for source in parents:
+
+            if source in self.in_ports.values():
+                raise DuplicatedSource('Source duplicated')
+
             n_port = self._get_next_available_input_port()
             self.in_ports[n_port] = source
             source.add_target(self)
@@ -276,20 +284,12 @@ class NotDownStreamable(Connectable):
         return super().reset_target(target)
 
 
-class AbstractTransformation(Namable):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if not Namable.check_valid_name(self.name):
-            raise InvalidNameError(f'Object name is invalid: {self.name}')
-
-    @property
-    def id(self) -> str:
-        return self.name
-
+class Configurable:
+    @abstractmethod
     def configure(self, *args, **kwargs):
         ...
 
+    @abstractmethod
     def reset(self):
         ...
 
@@ -340,5 +340,9 @@ class StreamProcessor:
         return self.process_rows
 
 
-class Transformation(AbstractTransformation, StreamProcessor):
-    ...
+class Transformation(Namable, Configurable, StreamProcessor):
+    def configure(self, *args, **kwargs):
+        ...
+
+    def reset(self):
+        ...

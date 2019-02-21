@@ -34,6 +34,10 @@ class TargetAssignmentError(BaseBuildError):
     ...
 
 
+class DuplicatedSource(BaseBuildWarning):
+    ...
+
+
 class ConfigurationError(BaseException):
     ...
 

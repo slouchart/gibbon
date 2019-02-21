@@ -21,6 +21,10 @@ class DirectedAcyclicGraph:
                     parent: Union[Connectable, Tuple[Connectable], None],
                     *args: Any,
                     **kwargs: Any) -> Union[Connectable, None]:
+
+        if not Namable.check_valid_name(name):
+            raise InvalidNameError(f'Object name is invalid: {name}')
+
         node = cls(name, *args, **kwargs)
 
         if node is None:
@@ -35,7 +39,7 @@ class DirectedAcyclicGraph:
         if is_source(node):
             self._roots.append(node)
 
-        self._nodes[node.id] = node
+        self._nodes[node.name] = node
 
         return node
 

@@ -2,7 +2,17 @@ from .base import *
 from ..exceptions import MissingArgumentError
 
 
-class Source(NotDownStreamable, UpStreamable, Transformation):
+class EndPoint(Namable, Configurable, StreamProcessor):
+    @abstractmethod
+    def configure(self, *args, **kwargs):
+        ...
+
+    @abstractmethod
+    def reset(self):
+        ...
+
+
+class Source(NotDownStreamable, UpStreamable, EndPoint):
     """A near abstract source of data. THe actual stream generator is provided at runtime by the Configuration feature
     the actual source must expose a asynchronous interface for async iter and async context management"""
     def __init__(self, *args, **kwargs):
@@ -32,7 +42,7 @@ class Source(NotDownStreamable, UpStreamable, Transformation):
             await self.emit_eof()
 
 
-class Target(NotUpStreamable, MonoDownStreamable, Transformation):
+class Target(NotUpStreamable, MonoDownStreamable, EndPoint):
     """A near abstract model of a downstream target whether a file or a database.
     The actual target is specified at runtime with the Configuration.
     The target will perform blocking operations unless it is defined as non-blocking.
