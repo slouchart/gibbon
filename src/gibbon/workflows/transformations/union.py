@@ -1,9 +1,9 @@
-from .base import ManyToMany, StreamProcessor
+from .base import *
 
 
-class Union(ManyToMany, StreamProcessor):
-    def __init__(self, *args, in_ports=2, out_ports=1, **kwargs):
-        super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
+class Union(UpStreamable, MultiDownStreamable, Transformation):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.eof_signals = None
 
     def may_stop_process(self, row=None):

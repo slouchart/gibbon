@@ -1,7 +1,7 @@
-from .base import OneToMany, StreamProcessor
+from .base import *
 
 
-class Normalizer(OneToMany, StreamProcessor):
+class Normalizer(UpStreamable, MonoDownStreamable, Transformation):
     """
     Given a row of the form: 'Norman', 'MSc.', '50', '70', '25')
     outputs a stream of rows of the form:
@@ -12,10 +12,10 @@ class Normalizer(OneToMany, StreamProcessor):
      where the :key parameter governs how many head fields compose the key
      and the :entries parameter defines the expected missing values
     """
-    def __init__(self, *args, key, entries, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name, key, entries, *args, **kwargs):
         self.key = key
         self.entries = entries
+        super().__init__(name, *args, **kwargs)
 
     def process_row(self, row):
         rows = []

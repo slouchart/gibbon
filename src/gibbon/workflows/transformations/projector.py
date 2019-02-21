@@ -1,11 +1,9 @@
-from .base import ManyToMany
-from .base import OneToMany
-from .base import StreamProcessor
+from .base import *
 
 
-class Concat(ManyToMany, StreamProcessor):
-    def __init__(self, *args, in_ports=2, out_ports=1, **kwargs):
-        super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
+class Concat(UpStreamable, MultiDownStreamable, Transformation):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.buffers = dict()
 
     async def process_rows(self):
@@ -33,10 +31,10 @@ class Concat(ManyToMany, StreamProcessor):
                 break
 
 
-class Split(OneToMany, StreamProcessor):
-    def __init__(self, *args, func, **kwargs):
-        super().__init__(*args, out_ports=2, **kwargs)
+class Split(UpStreamable, MonoDownStreamable, Transformation):
+    def __init__(self, name, func, *args, **kwargs):
         self.func = func
+        super().__init__(name, *args, **kwargs)
 
     async def process_rows(self):
         while True:

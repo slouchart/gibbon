@@ -1,4 +1,4 @@
-from .base import OneToMany, StreamProcessor
+from .base import *
 from ..exceptions import BaseBuildWarning
 
 
@@ -6,16 +6,16 @@ class SelectorHasTooManyTargets(BaseBuildWarning):
     ...
 
 
-class Selector(OneToMany, StreamProcessor):
+class Selector(UpStreamable, MonoDownStreamable, Transformation):
     """Dispatch input rows according to some conditions"""
-    def __init__(self, *args, conditions, **kwargs):
+    def __init__(self, name, conditions, *args, **kwargs):
         self.conditions = conditions
-        out_ports = len(self.conditions)
-        super().__init__(*args, out_ports=out_ports, **kwargs)
+        super().__init__(name, *args, **kwargs)
+        assert len(self.targets) <= len(self.conditions)
 
     def add_target(self, target):
         super().add_target(target)
-        if len(self.out_ports) > len(self.conditions)+1:
+        if len(self.targets) > len(self.conditions)+1:
             raise SelectorHasTooManyTargets(f'Selector {self.name} has too many targets')
 
     async def process_rows(self):

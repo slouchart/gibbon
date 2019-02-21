@@ -1,25 +1,87 @@
-from abc import abstractmethod
 from typing import *
+from abc import abstractmethod
 
-from ..exceptions import TargetAssignmentError
+
+from ..util import Namable
+from ..exceptions import InvalidNameError
 
 
-class Transformation:
-    def __init__(self, name: str, in_ports: int, out_ports: int, *args, **kwargs):
-        self.name = name
-        self.in_ports = dict()
-        self.out_ports = dict()
-        self._initialize_ports(in_ports, out_ports)
-        super().__init__(*args, **kwargs)
+class Connectable:
+    @abstractmethod
+    def set_source(self, parent):
+        raise NotImplementedError("Please implement 'set_source' in derived class")
+
+    @abstractmethod
+    def set_sources(self, *parents):
+        raise NotImplementedError("Please implement 'set_sources' in derived class")
 
     @property
-    def id(self) -> str:
-        return self.name
+    @abstractmethod
+    def has_source(self) -> int:
+        raise NotImplementedError("Please implement 'has_source' in derived class")
 
-    def _initialize_ports(self, in_ports, out_ports):
-        for p in range(in_ports):
-            self.in_ports[p] = None
+    @property
+    @abstractmethod
+    def sources(self) -> ValuesView:
+        raise NotImplementedError("Please implement 'sources' in derived class")
 
+    @property
+    @abstractmethod
+    def has_target(self) -> int:
+        raise NotImplementedError("Please implement 'has_target' in derived class")
+
+    @property
+    @abstractmethod
+    def targets(self) -> ValuesView:
+        raise NotImplementedError("Please implement 'targets' in derived class")
+
+    @abstractmethod
+    def add_target(self, target):
+        raise NotImplementedError("Please implement 'add_target' in derived class")
+
+    @abstractmethod
+    def reset_target(self, target):
+        raise NotImplementedError("Please implement 'reset_target' in derived class")
+
+
+class UpStreamable(Connectable):
+    def __init__(self, *args, **kwargs) -> None:
+        self.out_ports = dict()
+        super().__init__(*args, **kwargs)
+
+    def set_source(self, parent):
+        super().set_source(parent)
+
+    def set_sources(self, *parents):
+        super().set_sources(*parents)
+
+    @property
+    def has_source(self) -> int:
+        return super().has_source
+
+    @property
+    def sources(self) -> ValuesView:
+        return super().sources
+
+    @property
+    def has_target(self) -> int:
+        return len(self.targets)
+
+    @property
+    def targets(self) -> MutableSequence:
+        return [n for n in self.out_ports.values() if n is not None]
+
+    def add_target(self, target):
+        n_port = self._get_next_available_output_port()
+        self.out_ports[n_port] = target
+
+    def reset_target(self, target):
+        for k, v in self.out_ports.items():
+            if v is target:
+                del self.out_ports[k]
+                break
+
+    def _initialize_output_ports(self, out_ports):
         for p in range(out_ports):
             self.out_ports[p] = None
 
@@ -42,54 +104,82 @@ class Transformation:
 
         return n_port
 
-    @abstractmethod
+
+class NotUpStreamable(Connectable):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if hasattr(self, 'output_ports'):
+            raise TypeError("Cannot base class NotUpStreamable and UpStreamable")
+
     def set_source(self, parent):
-        raise NotImplementedError
+        super().set_source(parent)
+
+    def set_sources(self, *parents):
+        super().set_sources(*parents)
+
+    @property
+    def has_source(self) -> int:
+        return super().has_source
+
+    @property
+    def sources(self) -> ValuesView:
+        return super().sources
+
+    @property
+    def has_target(self) -> int:
+        # Invoking 'has_target' makes no sense
+        return 0
+
+    @property
+    def targets(self) -> MutableSequence:
+        # Invoking 'targets' makes no sense
+        return []
+
+    def add_target(self, target):
+        # Invoking 'add_target' makes no sense
+        ...
+
+    def reset_target(self, target):
+        # Invoking 'reset_target' makes no sense
+        ...
+
+
+class MultiDownStreamable(Connectable):
+    def __init__(self, *args, **kwargs):
+        self.in_ports = dict()
+        super().__init__(*args, **kwargs)
+
+    def set_source(self, parent):
+        self.set_sources(parent)
+
+    def set_sources(self, *parents):
+        # expect a tuple of sources transformations
+        for source in parents:
+            n_port = self._get_next_available_input_port()
+            self.in_ports[n_port] = source
+            source.add_target(self)
 
     @property
     def has_source(self) -> int:
         return len(self.sources)
 
     @property
-    def sources(self) -> MutableSequence:
-        return [n for n in self.in_ports.values() if n is not None]
+    def sources(self) -> ValuesView:
+        return self.in_ports.values()
 
     @property
     def has_target(self) -> int:
-        return len(self.targets)
+        return super().has_target
 
     @property
-    def targets(self) -> MutableSequence:
-        return [n for n in self.out_ports.values() if n is not None]
+    def targets(self) -> ValuesView:
+        return super().targets
 
     def add_target(self, target):
+        super().add_target(target)
 
-        if target in self.out_ports.values():
-            raise TargetAssignmentError(f'Source {self.name} already connected to target {target.name}')
-
-        n_port = self._get_next_available_output_port()
-        self.out_ports[n_port] = target
-
-    def configure(self, *args, **kwargs):
-        pass
-
-    def reset(self):
-        pass
-
-
-class OneToMany(Transformation):
-    def __init__(self, *args, out_ports: int = 1, **kwargs) -> None:
-        super().__init__(*args, in_ports=1, out_ports=out_ports, **kwargs)
-
-    def set_source(self, parent):
-        assert self.in_ports[0] is None
-        self.in_ports[0] = parent
-        parent.add_target(self)
-
-
-class ManyToMany(Transformation):
-    def __init__(self, *args, in_ports: int = 1, out_ports: int = 1, **kwargs) -> None:
-        super().__init__(*args, in_ports=in_ports, out_ports=out_ports, **kwargs)
+    def reset_target(self, target):
+        super().reset_target(target)
 
     def _extend_input_ports(self):
         n_port = len(self.in_ports)
@@ -110,12 +200,98 @@ class ManyToMany(Transformation):
 
         return n_port
 
-    def set_source(self, *parents):
-        # expect a tuple of sources transformations
-        for source in parents:
-            n_port = self._get_next_available_input_port()
-            self.in_ports[n_port] = source
-            source.add_target(self)
+
+class MonoDownStreamable(Connectable):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.in_port = None
+
+    def set_source(self, parent):
+        if self.in_port is not None:
+            self.in_port.reset_target(self)
+        self.in_port = parent
+        parent.add_target(self)
+
+    def set_sources(self, *parents):
+        raise TypeError("Cannot invoke 'set_sources' on a mono downstreamable object, use 'set_source' instead")
+
+    @property
+    def has_source(self) -> int:
+        return self.in_port is not None
+
+    @property
+    def sources(self) -> ValuesView:
+        if self.in_port is not None:
+            return {None: self.in_port}.values()
+        else:
+            return {}.values()
+
+    @property
+    def has_target(self) -> int:
+        return super().has_target
+
+    @property
+    def targets(self) -> ValuesView:
+        return super().targets
+
+    def add_target(self, target):
+        super().add_target(target)
+
+    def reset_target(self, target):
+        super().reset_target(target)
+
+
+class NotDownStreamable(Connectable):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if hasattr(self, 'input_ports'):
+            raise TypeError("Cannot base class NotDownStreamable and DownStreamable")
+
+    def set_source(self, parent):
+        raise TypeError("Cannot invoke 'set_source' on a NotDownStreamable object")
+
+    def set_sources(self, *parents):
+        raise TypeError("Cannot invoke 'set_sources' on a NotDownStreamable object")
+
+    @property
+    def has_source(self) -> int:
+        return 0
+
+    @property
+    def sources(self) -> MutableSequence:
+        return []
+
+    @property
+    def has_target(self) -> int:
+        return len(self.targets)
+
+    @property
+    def targets(self) -> ValuesView:
+        return super().targets
+
+    def add_target(self, target):
+        return super().add_target(target)
+
+    def reset_target(self, target):
+        return super().reset_target(target)
+
+
+class AbstractTransformation(Namable):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not Namable.check_valid_name(self.name):
+            raise InvalidNameError(f'Object name is invalid: {self.name}')
+
+    @property
+    def id(self) -> str:
+        return self.name
+
+    def configure(self, *args, **kwargs):
+        ...
+
+    def reset(self):
+        ...
 
 
 class StreamProcessor:
@@ -123,6 +299,7 @@ class StreamProcessor:
     def __init__(self, *args, **kwargs) -> None:
         self.in_queues = []
         self.out_queues = []
+        super().__init__(*args, **kwargs)
 
     def share_queue_with_target(self, target, queue):
         self.out_queues.append(queue)
@@ -162,3 +339,6 @@ class StreamProcessor:
     def get_async_job(self):
         return self.process_rows
 
+
+class Transformation(AbstractTransformation, StreamProcessor):
+    ...

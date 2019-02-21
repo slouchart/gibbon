@@ -1,8 +1,9 @@
 import logging
-import re
 from typing import *
 
-from .transformations.base import Transformation
+from .util import Namable
+
+from .transformations.base import Transformation, Connectable
 from .transformations.endpoints import Source, Target
 from .transformations.endpoints import is_source, is_target
 from .configuration import Configuration
@@ -15,18 +16,19 @@ class DirectedAcyclicGraph:
         self._nodes = dict()
         self._roots = []
 
-    def create_node(self,
-                    cls: Type[Transformation], *args,
-                    parent: Transformation = None, **kwargs) \
-            -> Union[Transformation, None]:
-        node = cls(*args, **kwargs)
+    def create_node(self, name: Text,
+                    cls: Union[Type[Transformation], Type[Connectable]],
+                    parent: Union[Connectable, Tuple[Connectable], None],
+                    *args: Any,
+                    **kwargs: Any) -> Union[Connectable, None]:
+        node = cls(name, *args, **kwargs)
 
         if node is None:
             return None
 
         if parent:
             if isinstance(parent, list):
-                node.set_source(*parent)
+                node.set_sources(*parent)
             else:
                 node.set_source(parent)
 
@@ -44,7 +46,7 @@ class DirectedAcyclicGraph:
         return item in self._nodes
 
     @property
-    def nodes(self) -> Iterable:
+    def nodes(self) -> ValuesView:
         return self._nodes.values()
 
     def is_root(self, node: Transformation) -> bool:
@@ -112,106 +114,63 @@ class DirectedAcyclicGraph:
                         queue.append(c)
 
 
-class Workflow:
+class Workflow(Namable):
 
-    def __init__(self, name: str = None) -> None:
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         self._dag = DirectedAcyclicGraph()
-        self._warnings = []
-        self._errors = []
-        self._checked = False
+
+        self._requires_validation = True
         self._valid = False
-        self.name = name
-        self.check_valid_name(self.name)
         self._invalid_config = None
 
-    def check_valid_name(self, name: str) -> None:
-        if not name:
-            self._add_error(InvalidNameError, f'Object name is mandatory but appears to be missing')
-            return
-
-        regexp = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
-        if not regexp.match(name):
-            self._add_error(InvalidNameError, f'Object name is invalid: {name}')
+        if not Namable.check_valid_name(self.name):
+            raise InvalidNameError(f'Object name is invalid: {self.name}')
 
     def get_node_by_name(self, name: str) -> Union[Transformation, None]:
         if name not in self._dag:
-            self._add_error(NodeNotFound, f"Node {name} not found")
-            return None
-
-        return self._dag[name]
-
-    def _add_error(self, exc: Union[BaseException, Type[BaseBuildError]], msg: str = None) -> None:
-        if isinstance(exc, BaseException):
-            self._errors.append(exc)
+            raise NodeNotFound(f"Node {name} not found")
         else:
-            self._errors.append(exc(msg))
-
-    def _add_warning(self, warn: Union[BaseException, Type[BaseBuildWarning]], msg: str = None) -> None:
-        if isinstance(warn, BaseException):
-            self._warnings.append(warn)
-        else:
-            self._warnings.append(warn(msg))
+            return self._dag[name]
 
     def add_source(self, name: str) -> None:
-        self._checked = False
-        self.check_valid_name(name)
-
-        try:
-            self._dag.create_node(Source, name)
-        except BaseBuildWarning as w:
-            self._add_warning(w)
-        except BaseException as e:
-            self._add_error(e)
+        self._requires_validation = True
+        self._dag.create_node(name, Source, None)
 
     def add_target(self, name: str, source: str = None) -> None:
-        self._checked = False
-        self.check_valid_name(name)
-
-        try:
-            if source:
-                parent = self.get_node_by_name(source)
-            else:
-                parent = None
-            self._dag.create_node(Target, name, parent=parent)
-        except BaseBuildWarning as w:
-            self._add_warning(w)
-        except BaseException as e:
-            self._add_error(e)
+        self._requires_validation = True
+        if source:
+            parent = self.get_node_by_name(source)
+        else:
+            parent = None
+        self._dag.create_node(name, Target, parent)
 
     def add_transformation(self, name: Text,
                            cls: Type[Transformation],
                            *args,
-                           sources: Union[Tuple, Text] = None,
+                           sources: Union[Tuple, str] = None,
                            targets: Tuple = (),
                            **kwargs) -> None:
 
-        self._checked = False
-        self.check_valid_name(name)
+        self._requires_validation = True
 
         parents = None
-        if sources and isinstance(sources, tuple) or isinstance(sources, list):
+        if sources and isinstance(sources, tuple):
             parents = []
             for source in sources:
                 parent = self.get_node_by_name(source)
                 if parent:
                     parents.append(parent)
         elif sources is not None:
-            parents = self.get_node_by_name(sources)
+            source = str(sources)
+            parents = self.get_node_by_name(source)
 
-        try:
-            node = self._dag.create_node(cls, name, *args, parent=parents, **kwargs)
+        node = self._dag.create_node(name, cls, parents, *args, **kwargs)
 
-            for target in targets:
-                if target is None:
-                    continue
-
+        for target in targets:
+            if target:
                 target = self.get_node_by_name(target)
                 target.set_source(node)
-
-        except BaseBuildWarning as w:
-            self._add_warning(w)
-        except BaseException as e:
-            self._add_error(e)
 
     def connect(self, source: str, *targets: str) -> None:
         if source:
@@ -220,66 +179,48 @@ class Workflow:
         for target in targets:
             target = self.get_node_by_name(target)
             if target and source:
+                self._requires_validation = True
                 target.set_source(source)
 
     @property
     def is_valid(self) -> bool:
-        if self._checked:
-            pass
-        else:
-            self.validate()
+        if self._requires_validation:
+            self.validate(silent=True)
 
         return self._valid
 
-    def validate(self, verbose: bool = False) -> None:
+    def validate(self, verbose: bool = False, silent: bool = False) -> None:
+
+        if not self._requires_validation:
+            logging.info(f"Workflow {self.name} doesn't seem to require validation")
 
         logging.info(f"Validating workflow {self.name}")
 
-        # is there any previous build errors?
-        if len(self._errors):
-            self._valid = False
+        errors = []
+
+        def on_error(exc_type, msg):
+            errors.append(exc_type(msg))
+
+        if len(self._dag.nodes) == 0:
+            on_error(NodeNotFound, f'No transformation defined, workflow {self.name} is empty')
         else:
-            # is the reachability predicate true?
-            self._dag.check_reachability(self._add_error)
+            self._dag.check_reachability(on_error)
 
-            if len(self._errors):
-                self._valid = False
-            else:
-                self._valid = True
+        self._valid = len(errors) == 0
 
-        self._checked = True
+        if verbose and not self._valid:
+            for error in errors:
+                logging.error(str(error))
 
-        if verbose:
-            logging.info(self.get_all_errors())
-            logging.info(self.get_all_warnings())
-        if self.is_valid:
+        if self._valid:
             logging.info(f"Workflow {self.name} is valid.")
+            self._requires_validation = False
         else:
             logging.info(f"Workflow {self.name} is invalid.")
+            self._requires_validation = True
 
-    def get_all_warnings(self) -> str:
-        s = ""
-        for exc in self._warnings:
-            s += f"warning: {exc}\n"
-
-        if len(s) == 0:
-            s = "No warning."
-
-        return s
-
-    def get_all_errors(self) -> str:
-        s = ""
-        for exc in self._errors:
-            s += f"error: {repr(exc)}\n"
-
-        if len(s) == 0:
-            s = "No error."
-
-        return s
-
-    def raise_last(self) -> None:
-        if len(self._errors):
-            raise self._errors.pop()
+        if len(errors) and not silent:
+            raise errors.pop()
 
     def prepare(self, cfg_visitor: Configuration) -> None:
         if not self.is_valid:
@@ -289,9 +230,9 @@ class Workflow:
                 self._dag.bfs_traverse(cfg_visitor.set_configuration)
                 self._invalid_config = False
             except ConfigurationError as e:
-                self._add_error(e)
                 logging.error(str(e))
                 self._invalid_config = True
+                raise
 
     def reset(self, cfg_visitor: Configuration) -> None:
         self._dag.bfs_traverse(cfg_visitor.reset_configuration)

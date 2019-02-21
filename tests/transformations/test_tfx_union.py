@@ -1,4 +1,5 @@
 import unittest
+import logging
 
 from src import gibbon
 
@@ -15,7 +16,7 @@ class TestUnionCreate(unittest.TestCase):
         self.w.connect('src1', 'union')
         self.w.connect('src2', 'union')
         self.w.connect('union', 'tgt')
-        self.w.validate()
+        self.w.validate(verbose=True)
         self.assertTrue(self.w.is_valid)
 
 
@@ -52,4 +53,5 @@ class TestUnionRun(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()

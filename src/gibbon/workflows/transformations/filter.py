@@ -1,7 +1,7 @@
-from .base import OneToMany, StreamProcessor
+from .base import *
 
 
-class Filter(OneToMany, StreamProcessor):
+class Filter(UpStreamable, MonoDownStreamable, Transformation):
     # TODO: add doc string
     def __init__(self, *args, condition=lambda r: True, **kwargs):
         super().__init__(*args, **kwargs)

@@ -10,12 +10,14 @@ class TestSorter(unittest.TestCase):
         self.results = []
         self.wk_sort_asc = gibbon.Workflow('sort_asc')
         self.wk_sort_asc.add_source('src')
-        self.wk_sort_asc.add_transformation('sort_asc', gibbon.Sorter, sources='src', key=lambda r: r[0])
+        self.wk_sort_asc.add_transformation('sort_asc', gibbon.Sorter, lambda r: r[0],
+                                            sources='src')
         self.wk_sort_asc.add_target('tgt', source='sort_asc')
 
         self.wk_sort_desc = gibbon.Workflow('sort_desc')
         self.wk_sort_desc.add_source('src')
-        self.wk_sort_desc.add_transformation('sort_desc', gibbon.Sorter, sources='src', key=lambda r: r[0], reverse=True)
+        self.wk_sort_desc.add_transformation('sort_desc', gibbon.Sorter, lambda r: r[0], reverse=True,
+                                             sources='src')
         self.wk_sort_desc.add_target('tgt', source='sort_desc')
 
         self.cfg = gibbon.Configuration()

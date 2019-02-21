@@ -26,19 +26,18 @@ class TestCreate(unittest.TestCase):
             self.assertTrue(hasattr(self.wk, attr))
 
     def test_no_name(self):
-        with self.assertRaises(gibbon.InvalidNameError) as ctx:
-            wk = gibbon.Workflow()
-            wk.raise_last()
+        with self.assertRaises(TypeError) as ctx:
+            gibbon.Workflow()
+
         exc = ctx.exception
-        self.assertEqual(str(exc), 'Object name is mandatory but appears to be missing')
+        self.assertEqual(str(exc), "__init__() missing 1 required positional argument: 'name'")
 
     def test_invalid_name(self):
         with self.assertRaises(gibbon.InvalidNameError) as ctx:
-            wk = gibbon.Workflow(self.invalid_name)
-            wk.raise_last()
+            gibbon.Workflow(self.invalid_name)
+
         exc = ctx.exception
         self.assertRegex(str(exc), r'^Object name is invalid:')
-        self.assertEqual(wk.name, self.invalid_name)
 
 
 if __name__ == '__main__':

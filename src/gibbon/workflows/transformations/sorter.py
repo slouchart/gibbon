@@ -1,12 +1,12 @@
-from .base import OneToMany, StreamProcessor
+from .base import *
 
 
-class Sorter(OneToMany, StreamProcessor):
+class Sorter(UpStreamable, MonoDownStreamable, Transformation):
     """Take its input in a buffer, sort it and output its content as a downstream"""
-    def __init__(self, *args, key, reverse=False, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, name, key, *args, reverse=False, **kwargs):
         self.key = key
         self.reverse = reverse
+        super().__init__(name, *args, **kwargs)
 
     async def process_rows(self):
         buffer = []

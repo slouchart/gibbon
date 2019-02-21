@@ -28,8 +28,7 @@ class TestSelector(unittest.TestCase):
         self.wk_sel_bin.add_source('src')
 
         conditions = (is_positive_or_zero, is_negative)
-        self.wk_sel_bin.add_transformation('sel', gibbon.Selector,
-                                           sources='src', conditions=conditions)
+        self.wk_sel_bin.add_transformation('sel', gibbon.Selector, conditions, sources='src',)
         self.wk_sel_bin.add_target('tgt1', source='sel')
         self.wk_sel_bin.add_target('tgt2', source='sel')
 
@@ -37,8 +36,8 @@ class TestSelector(unittest.TestCase):
         self.wk_sel_mul.add_source('src')
 
         conditions = (is_positive, is_negative, is_zero)
-        self.wk_sel_mul.add_transformation('sel', gibbon.Selector,
-                                           sources='src', conditions=conditions)
+        self.wk_sel_mul.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+
         self.wk_sel_mul.add_target('tgt1', source='sel')
         self.wk_sel_mul.add_target('tgt2', source='sel')
         self.wk_sel_mul.add_target('tgt3', source='sel')
@@ -46,8 +45,8 @@ class TestSelector(unittest.TestCase):
         conditions = (is_positive_or_zero, is_zero)
         self.wk_sel_shc = gibbon.Workflow('short_circuit_selector')
         self.wk_sel_shc.add_source('src')
-        self.wk_sel_shc.add_transformation('sel', gibbon.Selector,
-                                           sources='src', conditions=conditions)
+        self.wk_sel_shc.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+
         self.wk_sel_shc.add_target('tgt1', source='sel')
         self.wk_sel_shc.add_target('tgt2', source='sel')
 
@@ -62,22 +61,22 @@ class TestSelector(unittest.TestCase):
         conditions = (is_positive, is_negative)
         self.wk_sel_osp1 = gibbon.Workflow('out_port_specified')
         self.wk_sel_osp1.add_source('src')
-        self.wk_sel_osp1.add_transformation('sel', gibbon.Selector, out_ports=1,
-                                            sources='src', conditions=conditions)
+        self.wk_sel_osp1.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+
         self.wk_sel_osp1.add_target('tgt1', source='sel')
         self.wk_sel_osp1.add_target('tgt2', source='sel')
 
         conditions = (is_positive, is_negative)
         self.wk_sel_osp2 = gibbon.Workflow('no_out_ports_specified')
         self.wk_sel_osp2.add_source('src')
-        self.wk_sel_osp2.add_transformation('sel', gibbon.Selector, sources='src', conditions=conditions)
+        self.wk_sel_osp2.add_transformation('sel', gibbon.Selector, conditions, sources='src')
         self.wk_sel_osp2.add_target('tgt1', source='sel')
         self.wk_sel_osp2.add_target('tgt2', source='sel')
 
         self.wk_sel_wd = gibbon.Workflow('with_default')
         self.wk_sel_wd.add_source('src')
-        self.wk_sel_wd.add_transformation('sel', gibbon.Selector, sources='src',
-                                          conditions=conditions)
+        self.wk_sel_wd.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+
         self.wk_sel_wd.add_target('tgt1', source='sel')
         self.wk_sel_wd.add_target('tgt2', source='sel')
 
@@ -182,14 +181,15 @@ class TestSelector(unittest.TestCase):
         """Adding a useless target don't fail"""
         self.wk_sel_wd.reset(self.cfg)
         self.wk_sel_wd.add_target('tgt_default', source='sel')
-        self.wk_sel_wd.add_target('useless_target', source='sel')
 
         # this test show the workflow is valid
         # any way, the Selector raised a build warning saying that a useless target was connected
+        with self.assertRaises(gibbon.SelectorHasTooManyTargets) as ctx:
+            self.wk_sel_wd.add_target('useless_target', source='sel')
 
+        exc = ctx.exception
+        self.assertRegex(str(exc), r'Selector sel has too many targets$')
         self.assertTrue(self.wk_sel_wd.is_valid)
-        warnings = self.wk_sel_wd.get_all_warnings()
-        self.assertNotEqual(warnings, 'No warning.')
 
         data = [(0,), (1,), (-1,), (0,)]
         empty = []

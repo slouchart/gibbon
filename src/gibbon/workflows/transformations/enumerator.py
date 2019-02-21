@@ -1,7 +1,7 @@
-from .base import OneToMany, StreamProcessor
+from .base import *
 
 
-class Enumerator(OneToMany, StreamProcessor):
+class Enumerator(UpStreamable, MonoDownStreamable, Transformation):
 
     def __init__(self, *args, start_with=0, reset_after=-1, **kwargs):
         super().__init__(*args, **kwargs)

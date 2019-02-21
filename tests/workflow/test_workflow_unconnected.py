@@ -1,4 +1,6 @@
 import unittest
+import logging
+
 from src import gibbon
 
 
@@ -39,11 +41,12 @@ class TestUnconnectedWorkflow(unittest.TestCase):
         w.add_source('a_source')
         w.add_source('another_one')
         w.add_target('a_target')
-        w.add_transformation('union', gibbon.Union,
-                                     sources=('a_source', 'another_one'), targets=('a_target',))
+        w.add_transformation('union', gibbon.Union, sources=('a_source', 'another_one'), targets=('a_target',))
 
+        w.validate(verbose=True)
         self.assertTrue(w.is_valid)
 
 
 if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.DEBUG)
     unittest.main()
