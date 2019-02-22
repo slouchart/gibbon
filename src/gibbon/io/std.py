@@ -23,7 +23,7 @@ class SequenceWrapper(AsyncReaderInterface, AsyncWriterInterface):
     async def __aexit__(self, *args):
         pass
 
-    async def send(self, data):
+    async def put(self, data):
         if self._container is not None:
             self._container.append(data)
 
@@ -33,7 +33,7 @@ class StdOut(AsyncWriterInterface):
         self._output = stdout
         super().__init__(**kwargs)
 
-    async def send(self, data):
+    async def put(self, data):
         print(data, file=self._output)
 
     async def __aenter__(self):

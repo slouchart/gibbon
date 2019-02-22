@@ -5,6 +5,6 @@ class BaseExecutor:
 
     @abstractmethod
     def run_workflow(self, name, workflow, configuration):
-        raise NotImplementedError
+        ...
 
 

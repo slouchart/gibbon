@@ -1,4 +1,4 @@
-from .base import *
+from ..mixins import *
 from ..exceptions import BaseBuildWarning
 
 

@@ -1,4 +1,4 @@
-from .base import *
+from ..mixins import *
 
 
 class Concat(UpStreamable, MultiDownStreamable, Transformation):

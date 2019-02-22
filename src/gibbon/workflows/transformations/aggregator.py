@@ -1,4 +1,4 @@
-from .base import *
+from ..mixins import *
 
 
 def row_count() -> Callable[[Tuple, int], Tuple[int]]:
@@ -13,7 +13,7 @@ def simple_sum(field_index: int) -> Callable[[Tuple, float], Tuple[float]]:
     return inner_sum
 
 
-class Aggregator(UpStreamable, MonoDownStreamable, Transformation):
+class Aggregator(UpStreamable, MonoDownStreamable, Bufferized, Transformation):
     """This transformation accepts a stream of rows and compute some accumulators through a function
     the parameter :key accepts a row and return row that is a subset of the fields of the row.
     the parameter :accumulator is a callable that accepts an input row and somme accumulator. It must output a
@@ -25,26 +25,16 @@ class Aggregator(UpStreamable, MonoDownStreamable, Transformation):
         self.key = key
         self.func = accumulator
         self.initializer = initializer
-        self.buffer = None
+        self.dict = dict()
         super().__init__(name, *args, **kwargs)
 
     def process_row(self, row):
-        if self.key(row) in self.buffer:
-            self.buffer[self.key(row)] = self.func(row, *self.buffer[self.key(row)])
+        if self.key(row) in self.dict:
+            self.dict[self.key(row)] = self.func(row, *self.dict[self.key(row)])
         else:
-            self.buffer[self.key(row)] = self.func(row, *self.initializer)
+            self.dict[self.key(row)] = self.func(row, *self.initializer)
 
-    async def process_rows(self):
-        self.buffer = dict()
-        while True:
-            row = await self.get_row()
-            if self.may_stop_process(row):
-                break
-
-            self.process_row(row)
-
-        for key, value in self.buffer.items():
+    def process_buffer(self):
+        for key, value in self.dict.items():
             row = (*key, value[0],)
-            await self.emit_row(row)
-
-        await self.emit_eof()
+            self.buffer.append(row)

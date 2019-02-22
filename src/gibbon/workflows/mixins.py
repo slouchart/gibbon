@@ -2,9 +2,9 @@ from typing import *
 from abc import abstractmethod
 
 
-from src.gibbon.utils.abstract import Namable, Configurable
-from ..exceptions import NodeNotFound  # exceptions
-from ..exceptions import ParentNodeReset, DuplicatedSource  # warnings
+from ..utils.abstract import Namable, Configurable
+from .exceptions import NodeNotFound  # exceptions
+from .exceptions import ParentNodeReset, DuplicatedSource  # warnings
 
 
 class Connectable:
@@ -283,19 +283,21 @@ class NotDownStreamable(Connectable):
         return super().reset_target(target)
 
 
-class StreamProcessor:
+class RowProcessor:
     """Mixin that deals with the runtime behaviour of a transformation"""
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.in_queues = []
         self.out_queues = []
-        super().__init__(*args, **kwargs)
 
-    def share_queue_with_target(self, target, queue) -> None:
-        self.out_queues.append(queue)
-        target.in_queues.append(queue)
+    @abstractmethod
+    def process_row(self, row):
+        ...
 
     async def get_row(self):
-        return await self.in_queues[0].get()
+        if len(self.in_queues) == 1:
+            return await self.in_queues[0].get()
+        else:
+            raise NotImplementedError
 
     def may_stop_process(self, row):
         return row is None
@@ -304,8 +306,15 @@ class StreamProcessor:
         for q in self.out_queues:
             await q.put(None)
 
-    def process_row(self, row):
-        return row
+
+class StreamProcessor(RowProcessor):
+
+    def share_queue_with_target(self, target, queue) -> None:
+        self.out_queues.append(queue)
+        target.in_queues.append(queue)
+
+    def on_start_process_rows(self):
+        ...
 
     def can_emit_row(self, row):
         return True
@@ -315,7 +324,11 @@ class StreamProcessor:
             for q in self.out_queues:
                 await q.put(row)
 
+    def process_row(self, row):
+        return row
+
     async def process_rows(self):
+        self.on_start_process_rows()
         while True:
             row = await self.get_row()
             if self.may_stop_process(row):
@@ -327,6 +340,38 @@ class StreamProcessor:
 
     def get_async_job(self):
         return self.process_rows
+
+
+class Bufferized(RowProcessor):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self.buffer = []
+        super().__init__(*args, **kwargs)
+
+    def process_row(self, row):
+        row = super().process_row(row)
+        self.buffer.append(row)
+
+    @abstractmethod
+    def process_buffer(self):
+        ...
+
+    async def emit_buffer(self):
+        for row in self.buffer:
+            for oq in self.out_queues:
+                await oq.put(row)
+
+    async def process_rows(self):
+        while True:
+            row = await self.get_row()
+            if self.may_stop_process(row):
+                break
+
+            self.process_row(row)
+
+        self.process_buffer()
+        await self.emit_buffer()
+
+        await self.emit_eof()
 
 
 class Transformation(Namable, Configurable, StreamProcessor):

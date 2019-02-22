@@ -1,25 +1,16 @@
-from .base import *
+from ..mixins import *
 
 
-class Sorter(UpStreamable, MonoDownStreamable, Transformation):
+class Sorter(UpStreamable, MonoDownStreamable, Bufferized, Transformation):
     """Take its input in a buffer, sort it and output its content as a downstream"""
-    def __init__(self, name: str, key: Callable[[Tuple, Tuple], bool], *args: Any, reverse: bool = False, **kwargs: Any):
+    def __init__(self, name: str, key: Callable[[Tuple, Tuple], bool], *args: Any,
+                 reverse: bool = False, **kwargs: Any):
         self.key = key
         self.reverse = reverse
         super().__init__(name, *args, **kwargs)
 
-    async def process_rows(self):
-        buffer = []
-        while True:
-            row = await self.get_row()
-            if self.may_stop_process(row):
-                break
-            else:
-                buffer.append(row)
+    def process_buffer(self):
+        self.buffer = sorted(self.buffer, key=self.key, reverse=self.reverse)
 
-        for row in sorted(buffer, key=self.key, reverse=self.reverse):
-            await self.emit_row(row)
-
-        await self.emit_eof()
 
 

@@ -12,10 +12,10 @@
     8) actual execution mode (threaded, asynchronous, whatever) is selected at runtime
 """
 
-from .utils import *
 from .workflows import *
-from .execution import *
 from .io import *
+from .execution import *
+
 
 
 

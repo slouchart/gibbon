@@ -2,9 +2,9 @@ import logging
 from typing import *
 
 from .exceptions import *
-from .transformations.base import Transformation, Connectable
-from .transformations.endpoints import Source, Target
-from .transformations.endpoints import is_source, is_target
+from .mixins import Transformation, Connectable
+from .endpoints import Source, Target
+from .endpoints import is_source, is_target
 from ..utils.abstract import Namable, Visitable, VisitMode, Visitor
 
 
@@ -37,6 +37,9 @@ class DirectedAcyclicGraph:
 
     def __contains__(self, item: str) -> bool:
         return item in self._nodes
+
+    def __len__(self):
+        return len(self._nodes)
 
     @property
     def nodes(self) -> ValuesView:

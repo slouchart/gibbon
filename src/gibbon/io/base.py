@@ -29,7 +29,7 @@ class AsyncWriterInterface:
         ...
 
     @abstractmethod
-    async def send(self, data):
+    async def put(self, data):
         ...
 
     @abstractmethod

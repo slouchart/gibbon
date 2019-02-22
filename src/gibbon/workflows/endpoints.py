@@ -1,5 +1,5 @@
-from .base import *
-from ..exceptions import MissingArgumentError
+from .mixins import *
+from .exceptions import MissingArgumentError
 
 
 class EndPoint(Namable, Configurable, StreamProcessor):
@@ -72,7 +72,7 @@ class Target(NotUpStreamable, MonoDownStreamable, EndPoint):
                 row = await self.get_row()
                 if self.may_stop_process(row):
                     break
-                await tgt.send(row)
+                await tgt.put(row)
 
 
 def is_source(o):
@@ -84,4 +84,4 @@ def is_target(o):
 
 
 def is_endpoint(o):
-    return is_source(o) or is_target(0)
+    return is_source(o) or is_target(0) or isinstance(o, EndPoint)

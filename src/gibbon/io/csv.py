@@ -60,7 +60,7 @@ class CSVTargetFile(AsyncWriterInterface):
         self._executor = executor
         super().__init__()
 
-    async def send(self, data):
+    async def put(self, data):
         await self._loop.run_in_executor(self._executor, self._writer.writerow, data)
 
     async def __aenter__(self):

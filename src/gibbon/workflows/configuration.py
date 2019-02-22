@@ -1,6 +1,6 @@
 import logging
 
-from .transformations.base import Configurable
+from .mixins import Configurable
 from ..utils.abstract import Visitor
 
 

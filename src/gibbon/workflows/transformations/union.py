@@ -1,4 +1,4 @@
-from .base import *
+from ..mixins import *
 
 
 class Union(UpStreamable, MultiDownStreamable, Transformation):

@@ -4,8 +4,8 @@ from concurrent.futures import ThreadPoolExecutor as ThreadPoolExecutor
 from typing import *
 
 from .base import BaseExecutor
-from src.gibbon.utils.abstract import Visitor, VisitMode
-from ..workflows.transformations import StreamProcessor
+from ..utils.abstract import Visitor, VisitMode
+from ..workflows.mixins import StreamProcessor
 
 
 def get_async_executor(loop: asyncio.AbstractEventLoop = None, shutdown: bool = False) -> BaseExecutor:
@@ -35,6 +35,35 @@ class AsyncExecutor(BaseExecutor, Visitor):
         assert self.loop is not None
         if self.executor is not None:
             self.loop.set_default_executor(self.executor)
+
+    def run_workflow(self, name, workflow, configuration):
+
+        if not workflow.is_valid:
+            logging.error(f"{name}: invalid workflow cannot be run")
+        else:
+            workflow.accept_visitor(configuration, VisitMode.elements_only)
+            workflow.accept_visitor(self, VisitMode.links_only)
+            workflow.accept_visitor(self, VisitMode.elements_only)
+
+            logging.info(f'Start asynchronous job execution for workflow {name}')
+            exec_ok = self.loop.run_until_complete(self._schedule_jobs(name))
+
+            if exec_ok:
+                status = 'SUCCESS'
+            else:
+                status = 'FAILURE'
+            logging.info(f'Complete asynchronous job execution for workflow {name}, status {status}')
+
+        if self.shutdown:
+            self.loop.stop()
+            self.loop.close()
+
+    def visit_link(self, elem1, elem2):
+        self.set_queues(source=elem1, target=elem2)
+
+    def visit_element(self, name, element):
+        self.complete_runtime_configuration(name, element)
+        self.create_job_from(name, element)
 
     def create_queue(self) -> asyncio.Queue:
         return self._queue_factory(loop=self.loop)
@@ -76,33 +105,3 @@ class AsyncExecutor(BaseExecutor, Visitor):
             ...
         callback = getattr(transformation, 'configure', dummy)
         callback(loop=self.loop, executor=self.executor)
-
-    def run_workflow(self, name, workflow, configuration):
-
-        if not workflow.is_valid:
-            logging.error(f"{name}: invalid workflow cannot be run")
-        else:
-            workflow.accept_visitor(configuration, VisitMode.elements_only)
-            workflow.accept_visitor(self, VisitMode.links_only)
-            workflow.accept_visitor(self, VisitMode.elements_only)
-
-            logging.info(f'Start asynchronous job execution for workflow {name}')
-            exec_ok = self.loop.run_until_complete(self._schedule_jobs(name))
-
-            if exec_ok:
-                status = 'SUCCESS'
-            else:
-                status = 'FAILURE'
-            logging.info(f'Complete asynchronous job execution for workflow {name}, status {status}')
-
-        if self.shutdown:
-            self.loop.stop()
-            self.loop.close()
-
-    def visit_link(self, elem1, elem2):
-        self.set_queues(source=elem1, target=elem2)
-
-    def visit_element(self, name, element):
-        self.complete_runtime_configuration(name, element)
-        self.create_job_from(name, element)
-

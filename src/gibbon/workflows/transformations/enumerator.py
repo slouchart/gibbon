@@ -1,4 +1,4 @@
-from .base import *
+from ..mixins import *
 
 
 class Enumerator(UpStreamable, MonoDownStreamable, Transformation):
@@ -18,6 +18,6 @@ class Enumerator(UpStreamable, MonoDownStreamable, Transformation):
 
         return row
 
-    async def process_rows(self):
+    def on_start_process_rows(self):
         self._index = self.start_with
-        await super().process_rows()
+
