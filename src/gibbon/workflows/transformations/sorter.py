@@ -3,7 +3,7 @@ from .base import *
 
 class Sorter(UpStreamable, MonoDownStreamable, Transformation):
     """Take its input in a buffer, sort it and output its content as a downstream"""
-    def __init__(self, name, key, *args, reverse=False, **kwargs):
+    def __init__(self, name: str, key: Callable[[Tuple, Tuple], bool], *args: Any, reverse: bool = False, **kwargs: Any):
         self.key = key
         self.reverse = reverse
         super().__init__(name, *args, **kwargs)

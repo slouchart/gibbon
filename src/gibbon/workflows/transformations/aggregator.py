@@ -1,15 +1,16 @@
 from .base import *
 
 
-def row_count():
-    return lambda r, c: (c + 1,)
+def row_count() -> Callable[[Tuple, int], Tuple[int]]:
+    def inner_count(r: Tuple, c: int):
+        return c + 1,
+    return inner_count
 
 
-def simple_sum(field_index):
-    def _sum_on(r, s):
+def simple_sum(field_index: int) -> Callable[[Tuple, float], Tuple[float]]:
+    def inner_sum(r: Tuple, s: float):
         return s + r[field_index],
-
-    return _sum_on
+    return inner_sum
 
 
 class Aggregator(UpStreamable, MonoDownStreamable, Transformation):
@@ -19,7 +20,8 @@ class Aggregator(UpStreamable, MonoDownStreamable, Transformation):
     row containing the values of each of the accumulator.
     the parameter :initializer is used to set the starting value of the accumulators as a tuple"""
 
-    def __init__(self, name, key, accumulator, initializer, *args, **kwargs):
+    def __init__(self, name: str, key: Callable[[Tuple], Tuple],
+                 accumulator: Callable, initializer: Tuple, *args: Any, **kwargs: Any) -> None:
         self.key = key
         self.func = accumulator
         self.initializer = initializer

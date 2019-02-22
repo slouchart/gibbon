@@ -2,7 +2,7 @@ from typing import *
 from abc import abstractmethod
 
 
-from ..util import Namable, Configurable
+from src.gibbon.utils.abstract import Namable, Configurable
 from ..exceptions import NodeNotFound  # exceptions
 from ..exceptions import ParentNodeReset, DuplicatedSource  # warnings
 
@@ -46,14 +46,14 @@ class Connectable:
 
 
 class UpStreamable(Connectable):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.out_ports = dict()
         super().__init__(*args, **kwargs)
 
-    def set_source(self, parent):
+    def set_source(self, parent: Connectable):
         super().set_source(parent)
 
-    def set_sources(self, *parents):
+    def set_sources(self, *parents: Connectable):
         super().set_sources(*parents)
 
     @property
@@ -72,11 +72,11 @@ class UpStreamable(Connectable):
     def targets(self) -> MutableSequence:
         return [n for n in self.out_ports.values() if n is not None]
 
-    def add_target(self, target):
+    def add_target(self, target: Connectable):
         n_port = self._get_next_available_output_port()
         self.out_ports[n_port] = target
 
-    def reset_target(self, target):
+    def reset_target(self, target: Connectable):
         for k, v in self.out_ports.items():
             if v is target:
                 del self.out_ports[k]
@@ -84,16 +84,16 @@ class UpStreamable(Connectable):
         else:
             raise NodeNotFound('Target to reset was not found')
 
-    def _initialize_output_ports(self, out_ports):
+    def _initialize_output_ports(self, out_ports: int):
         for p in range(out_ports):
             self.out_ports[p] = None
 
-    def _extend_output_ports(self):
+    def _extend_output_ports(self) -> int:
         n_port = len(self.out_ports)
         self.out_ports[n_port] = None
         return n_port
 
-    def _get_next_available_output_port(self):
+    def _get_next_available_output_port(self) -> int:
         n_port = None
         for k, v in self.out_ports.items():
             n_port = k
@@ -109,15 +109,15 @@ class UpStreamable(Connectable):
 
 
 class NotUpStreamable(Connectable):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if hasattr(self, 'output_ports'):
             raise TypeError("Cannot base class NotUpStreamable and UpStreamable")
 
-    def set_source(self, parent):
+    def set_source(self, parent: Connectable):
         super().set_source(parent)
 
-    def set_sources(self, *parents):
+    def set_sources(self, *parents: Connectable):
         super().set_sources(*parents)
 
     @property
@@ -138,24 +138,24 @@ class NotUpStreamable(Connectable):
         # Invoking 'targets' makes no sense
         return []
 
-    def add_target(self, target):
+    def add_target(self, target: Connectable):
         # Invoking 'add_target' makes no sense
         raise TypeError("Cannot invoke 'add_target' on a NotUpStreamable object")
 
-    def reset_target(self, target):
+    def reset_target(self, target: Connectable):
         # Invoking 'reset_target' makes no sense
         raise TypeError("Cannot invoke 'reset_target' on a NotUpStreamable object")
 
 
 class MultiDownStreamable(Connectable):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         self.in_ports = dict()
         super().__init__(*args, **kwargs)
 
-    def set_source(self, parent):
+    def set_source(self, parent: Connectable):
         self.set_sources(parent)
 
-    def set_sources(self, *parents):
+    def set_sources(self, *parents: Connectable):
         # expect a tuple of sources transformations
         for source in parents:
 
@@ -182,18 +182,18 @@ class MultiDownStreamable(Connectable):
     def targets(self) -> ValuesView:
         return super().targets
 
-    def add_target(self, target):
+    def add_target(self, target: Connectable):
         super().add_target(target)
 
-    def reset_target(self, target):
+    def reset_target(self, target: Connectable):
         super().reset_target(target)
 
-    def _extend_input_ports(self):
+    def _extend_input_ports(self) -> int:
         n_port = len(self.in_ports)
         self.in_ports[n_port] = None
         return n_port
 
-    def _get_next_available_input_port(self):
+    def _get_next_available_input_port(self) -> int:
         n_port = None
         for k, v in self.in_ports.items():
             n_port = k
@@ -209,17 +209,17 @@ class MultiDownStreamable(Connectable):
 
 
 class MonoDownStreamable(Connectable):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.in_port = None
 
-    def set_source(self, parent):
+    def set_source(self, parent: Connectable):
         if self.in_port is not None:
             self.in_port.reset_target(self)
         self.in_port = parent
         parent.add_target(self)
 
-    def set_sources(self, *parents):
+    def set_sources(self, *parents: Connectable):
         raise TypeError("Cannot invoke 'set_sources' on a mono downstreamable object, use 'set_source' instead")
 
     @property
@@ -241,23 +241,23 @@ class MonoDownStreamable(Connectable):
     def targets(self) -> ValuesView:
         return super().targets
 
-    def add_target(self, target):
+    def add_target(self, target: Connectable):
         super().add_target(target)
 
-    def reset_target(self, target):
+    def reset_target(self, target: Connectable):
         super().reset_target(target)
 
 
 class NotDownStreamable(Connectable):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if hasattr(self, 'input_ports'):
             raise TypeError("Cannot base class NotDownStreamable and DownStreamable")
 
-    def set_source(self, parent):
+    def set_source(self, parent: Connectable):
         raise TypeError("Cannot invoke 'set_source' on a NotDownStreamable object")
 
-    def set_sources(self, *parents):
+    def set_sources(self, *parents: Connectable):
         raise TypeError("Cannot invoke 'set_sources' on a NotDownStreamable object")
 
     @property
@@ -276,21 +276,21 @@ class NotDownStreamable(Connectable):
     def targets(self) -> ValuesView:
         return super().targets
 
-    def add_target(self, target):
+    def add_target(self, target: Connectable):
         return super().add_target(target)
 
-    def reset_target(self, target):
+    def reset_target(self, target: Connectable):
         return super().reset_target(target)
 
 
 class StreamProcessor:
     """Mixin that deals with the runtime behaviour of a transformation"""
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.in_queues = []
         self.out_queues = []
         super().__init__(*args, **kwargs)
 
-    def share_queue_with_target(self, target, queue):
+    def share_queue_with_target(self, target, queue) -> None:
         self.out_queues.append(queue)
         target.in_queues.append(queue)
 
@@ -330,8 +330,8 @@ class StreamProcessor:
 
 
 class Transformation(Namable, Configurable, StreamProcessor):
-    def configure(self, *args, **kwargs):
+    def configure(self, **kwargs: Any) -> None:
         ...
 
-    def reset(self):
+    def reset(self) -> None:
         ...

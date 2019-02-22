@@ -3,7 +3,7 @@ from .base import *
 
 class Enumerator(UpStreamable, MonoDownStreamable, Transformation):
 
-    def __init__(self, *args, start_with=0, reset_after=-1, **kwargs):
+    def __init__(self, *args: Any, start_with: int = 0, reset_after: int = -1, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.start_with = start_with
         self._index = self.start_with
@@ -21,4 +21,3 @@ class Enumerator(UpStreamable, MonoDownStreamable, Transformation):
     async def process_rows(self):
         self._index = self.start_with
         await super().process_rows()
-

@@ -12,7 +12,7 @@ class Normalizer(UpStreamable, MonoDownStreamable, Transformation):
      where the :key parameter governs how many head fields compose the key
      and the :entries parameter defines the expected missing values
     """
-    def __init__(self, name, key, entries, *args, **kwargs):
+    def __init__(self, name: str, key: int, entries: Collection, *args: Any, **kwargs: Any):
         self.key = key
         self.entries = entries
         super().__init__(name, *args, **kwargs)

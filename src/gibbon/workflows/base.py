@@ -1,14 +1,11 @@
 import logging
 from typing import *
 
-from .util import Namable, Visitable, VisitMode, Visitor
-
+from .exceptions import *
 from .transformations.base import Transformation, Connectable
 from .transformations.endpoints import Source, Target
 from .transformations.endpoints import is_source, is_target
-from .configuration import Configuration
-from ..execution.base import BaseExecutor
-from .exceptions import *
+from ..utils.abstract import Namable, Visitable, VisitMode, Visitor
 
 
 class DirectedAcyclicGraph:
@@ -242,5 +239,3 @@ class Workflow(Namable, Visitable):
         elif mode == VisitMode.links_then_elements:
             self._dag.bfs_traverse_links(visitor.visit_link)
             self._dag.bfs_traverse(visitor.visit_element)
-
-

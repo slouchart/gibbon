@@ -8,7 +8,7 @@ class SelectorHasTooManyTargets(BaseBuildWarning):
 
 class Selector(UpStreamable, MonoDownStreamable, Transformation):
     """Dispatch input rows according to some conditions"""
-    def __init__(self, name, conditions, *args, **kwargs):
+    def __init__(self, name: str, conditions: Collection, *args: Any, **kwargs: Any):
         self.conditions = conditions
         super().__init__(name, *args, **kwargs)
         assert len(self.targets) <= len(self.conditions)

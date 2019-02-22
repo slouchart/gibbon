@@ -32,7 +32,7 @@ class Concat(UpStreamable, MultiDownStreamable, Transformation):
 
 
 class Split(UpStreamable, MonoDownStreamable, Transformation):
-    def __init__(self, name, func, *args, **kwargs):
+    def __init__(self, name: str, func: Callable[[Tuple], Collection[Tuple]], *args: Any, **kwargs: Any):
         self.func = func
         super().__init__(name, *args, **kwargs)
 

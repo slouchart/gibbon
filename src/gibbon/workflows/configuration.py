@@ -1,11 +1,10 @@
 import logging
 
 from .transformations.base import Configurable
-from .util import Visitor
+from ..utils.abstract import Visitor
 
 
 class Configuration(Visitor):
-
     class Element:
         def __init__(self):
             self.__dict__['_sub_dict'] = set()
@@ -66,4 +65,3 @@ class Configuration(Visitor):
 
     def visit_link(self, elem1, elem2):
         ...
-

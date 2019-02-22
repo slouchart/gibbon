@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor as ThreadPoolExecutor
 from typing import *
 
 from .base import BaseExecutor
-from ..workflows.util import Visitor, VisitMode
+from src.gibbon.utils.abstract import Visitor, VisitMode
 from ..workflows.transformations import StreamProcessor
 
 
@@ -100,9 +100,9 @@ class AsyncExecutor(BaseExecutor, Visitor):
             self.loop.close()
 
     def visit_link(self, elem1, elem2):
-        self.set_queues(elem1, elem2)
+        self.set_queues(source=elem1, target=elem2)
 
-    def visit_element(self, name, n):
-        self.complete_runtime_configuration(name, n)
-        self.create_job_from(name, n)
+    def visit_element(self, name, element):
+        self.complete_runtime_configuration(name, element)
+        self.create_job_from(name, element)
 

@@ -28,21 +28,21 @@ class Namable:
 
 class Configurable:
     @abstractmethod
-    def configure(self, **kwargs):
+    def configure(self, **kwargs: Any) -> None:
         ...
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         ...
 
 
 class Visitor:
     @abstractmethod
-    def visit_element(self, name, element):
+    def visit_element(self, name: str, element: Any) -> None:
         ...
 
     @abstractmethod
-    def visit_link(self, elem1, elem2):
+    def visit_link(self, elem1: Any, elem2: Any) -> None:
         ...
 
 

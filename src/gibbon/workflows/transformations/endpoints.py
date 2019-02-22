@@ -4,7 +4,7 @@ from ..exceptions import MissingArgumentError
 
 class EndPoint(Namable, Configurable, StreamProcessor):
     @abstractmethod
-    def configure(self, *args, **kwargs):
+    def configure(self, **kwargs: Any):
         ...
 
     @abstractmethod
@@ -15,12 +15,12 @@ class EndPoint(Namable, Configurable, StreamProcessor):
 class Source(NotDownStreamable, UpStreamable, EndPoint):
     """A near abstract source of data. THe actual stream generator is provided at runtime by the Configuration feature
     the actual source must expose a asynchronous interface for async iter and async context management"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.actual_source = None
         self.source_cfg = None
 
-    def configure(self, **kwargs):
+    def configure(self, **kwargs: Any):
         if 'source' in kwargs:
             self.actual_source = kwargs.pop('source')
             self.source_cfg = kwargs
@@ -47,12 +47,12 @@ class Target(NotUpStreamable, MonoDownStreamable, EndPoint):
     The actual target is specified at runtime with the Configuration.
     The target will perform blocking operations unless it is defined as non-blocking.
     Therefore we have an implementation mismatch here :/"""
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.actual_target = None
         self.target_cfg = None
 
-    def configure(self, **kwargs):
+    def configure(self, **kwargs: Any):
         if 'target' in kwargs:
             self.actual_target = kwargs.pop('target')
             self.target_cfg = kwargs
