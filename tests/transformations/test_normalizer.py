@@ -36,8 +36,7 @@ class TestNormalizerTwo(unittest.TestCase):
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
 
         self.assertEqual(len(sink), 3)
         logging.info(sink)

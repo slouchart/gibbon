@@ -78,8 +78,9 @@ class TestCSVSource(unittest.TestCase):
         cfg.add_configuration('csv', source=gibbon.CSVSourceFile, filename=self._filename)
         cfg.add_configuration('list', target=gibbon.SequenceWrapper, container=results)
 
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        executor = gibbon.get_async_executor(shutdown=True)
+        executor.run_workflow(self.w.name, workflow=self.w, configuration=cfg)
+
         self.assertTrue(len(results) > 0)
         self.assertIsInstance(results[0], tuple)
 
@@ -109,8 +110,7 @@ class TestCSVTarget(unittest.TestCase):
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=input_data)
         cfg.add_configuration('csv', target=gibbon.CSVTargetFile, filename=self._filename)
 
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, configuration=cfg)
         self.assertFileContent()
 
     def assertFileContent(self):

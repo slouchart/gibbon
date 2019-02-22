@@ -92,8 +92,8 @@ class TestSelector(unittest.TestCase):
         self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_sel_bin.prepare(self.cfg)
-        self.wk_sel_bin.run(executor)
+        executor.run_workflow(self.wk_sel_bin.name, self.wk_sel_bin, self.cfg)
+
         self.assertSequenceEqual(sinks[0], [(0,), (1,)])
         self.assertSequenceEqual(sinks[1], [(-1,)])
 
@@ -106,8 +106,8 @@ class TestSelector(unittest.TestCase):
         self.cfg.add_configuration('tgt3', target=gibbon.SequenceWrapper, container=sinks[2])
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_sel_mul.prepare(self.cfg)
-        self.wk_sel_mul.run(executor)
+        executor.run_workflow(self.wk_sel_mul.name, self.wk_sel_mul, self.cfg)
+
         self.assertSequenceEqual(sinks[0], [(1,)])
         self.assertSequenceEqual(sinks[1], [(-1,)])
         self.assertSequenceEqual(sinks[2], [(0,)])
@@ -122,8 +122,8 @@ class TestSelector(unittest.TestCase):
         self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_sel_shc.prepare(self.cfg)
-        self.wk_sel_shc.run(executor)
+        executor.run_workflow(self.wk_sel_shc.name, self.wk_sel_shc, self.cfg)
+
         self.assertSequenceEqual(sinks[0], [(0,)])
         self.assertSequenceEqual(sinks[1], [(0,)])
 
@@ -138,8 +138,8 @@ class TestSelector(unittest.TestCase):
         self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_sel_def.prepare(self.cfg)
-        self.wk_sel_def.run(executor)
+        executor.run_workflow(self.wk_sel_def.name, self.wk_sel_def, self.cfg)
+
         self.assertSequenceEqual(sinks[0], [(1,)])
         self.assertSequenceEqual(sinks[1], [(-1,)])
 
@@ -171,15 +171,15 @@ class TestSelector(unittest.TestCase):
         self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, container=sinks[2])
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_sel_wd.prepare(self.cfg)
-        self.wk_sel_wd.run(executor)
+        executor.run_workflow(self.wk_sel_wd.name, self.wk_sel_wd, self.cfg)
+
         self.assertSequenceEqual(sinks[0], [(1,)])
         self.assertSequenceEqual(sinks[1], [(-1,)])
         self.assertSequenceEqual(sinks[2], [(0,), (0,)])
 
     def testWithDefault2(self):
         """Adding a useless target don't fail"""
-        self.wk_sel_wd.reset(self.cfg)
+        #self.wk_sel_wd.reset(self.cfg)  # DEPRECATION WARNING
         self.wk_sel_wd.add_target('tgt_default', source='sel')
 
         # this test show the workflow is valid
@@ -202,9 +202,8 @@ class TestSelector(unittest.TestCase):
         self.cfg.add_configuration('useless_target', target=gibbon.SequenceWrapper, container=empty)
 
         executor = gibbon.get_async_executor(shutdown=True)
+        executor.run_workflow(self.wk_sel_wd.name, self.wk_sel_wd, self.cfg)
 
-        self.wk_sel_wd.prepare(self.cfg)
-        self.wk_sel_wd.run(executor)
         self.assertSequenceEqual(sinks[0], [(1,)])
         self.assertSequenceEqual(sinks[1], [(-1,)])
         self.assertSequenceEqual(sinks[2], [(0,), (0,)])

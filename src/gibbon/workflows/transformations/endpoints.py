@@ -20,7 +20,7 @@ class Source(NotDownStreamable, UpStreamable, EndPoint):
         self.actual_source = None
         self.source_cfg = None
 
-    def configure(self, *args, **kwargs):
+    def configure(self, **kwargs):
         if 'source' in kwargs:
             self.actual_source = kwargs.pop('source')
             self.source_cfg = kwargs
@@ -52,7 +52,7 @@ class Target(NotUpStreamable, MonoDownStreamable, EndPoint):
         self.actual_target = None
         self.target_cfg = None
 
-    def configure(self, *args, **kwargs):
+    def configure(self, **kwargs):
         if 'target' in kwargs:
             self.actual_target = kwargs.pop('target')
             self.target_cfg = kwargs

@@ -38,8 +38,7 @@ class TestConcat(unittest.TestCase):
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(cfg)
-        self.w.run(executor)
+        executor.run_workflow(self.w.name, self.w, cfg)
 
         self.assertTrue(len(sink))
         self.assertEqual(sink[0], ('row_id', 'row_data'))
@@ -57,8 +56,7 @@ class TestConcat(unittest.TestCase):
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(cfg)
-        self.w.run(executor)
+        executor.run_workflow(self.w.name, self.w, cfg)
 
         self.assertTrue(len(sink))
         self.assertEqual(len(sink), 2)
@@ -88,8 +86,7 @@ class TestSplit(unittest.TestCase):
         cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(cfg)
-        self.w.run(executor)
+        executor.run_workflow(self.w.name, self.w, cfg)
 
         self.assertEqual(len(sink1), 1)
         self.assertEqual(len(sink2), 1)
@@ -118,8 +115,7 @@ class TestSplitUnbalancedOne(unittest.TestCase):
         cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(cfg)
-        self.w.run(executor)
+        executor.run_workflow(self.w.name, self.w, cfg)
 
         self.assertEqual(len(sink1), 1)
         self.assertEqual(len(sink2), 0)
@@ -147,8 +143,7 @@ class TestSplitUnbalancedTwo(unittest.TestCase):
         cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(cfg)
-        self.w.run(executor)
+        executor.run_workflow(self.w.name, self.w, cfg)
 
         self.assertEqual(len(sink1), 1)
         self.assertEqual(len(sink2), 1)

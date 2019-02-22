@@ -41,8 +41,7 @@ class TestUnionRun(unittest.TestCase):
         cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=data_src_2)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
 
         self.assertGreater(len(sink), 0)
         self.assertEqual(len(sink), len(data_src_1)+len(data_src_2))

@@ -38,8 +38,8 @@ class TestEnumerator2(unittest.TestCase):
         sink = []
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(self.cfg)
-        self.w.run(executor)
+
+        executor.run_workflow(self.w.name, self.w, self.cfg)
         self.assertSequenceEqual(sink, list(enumerate(self.data)))
 
 
@@ -62,8 +62,7 @@ class TestEnumerator3(unittest.TestCase):
         sink = []
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
         executor = gibbon.get_async_executor(shutdown=True)
-        self.w.prepare(self.cfg)
-        self.w.run(executor)
+        executor.run_workflow(self.w.name, self.w, self.cfg)
         self.assertSequenceEqual(sink, list(zip([1]*len(self.data), self.data)))
 
 

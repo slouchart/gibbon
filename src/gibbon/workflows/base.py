@@ -1,7 +1,7 @@
 import logging
 from typing import *
 
-from .util import Namable
+from .util import Namable, Visitable, VisitMode, Visitor
 
 from .transformations.base import Transformation, Connectable
 from .transformations.endpoints import Source, Target
@@ -93,7 +93,7 @@ class DirectedAcyclicGraph:
                         callback(node, c)
                         queue.append(c)
 
-    def bfs_traverse(self, callback: Callable[[Transformation], None]) -> None:
+    def bfs_traverse(self, callback: Callable[[str, Any], None]) -> None:
         queue = []
         visited = set()
         for n in self.roots:
@@ -103,14 +103,14 @@ class DirectedAcyclicGraph:
             if node in visited:
                 continue
             else:
-                callback(node)
+                callback(node.name, node)
                 visited.add(node)
                 if node.has_target:
                     for c in node.targets:
                         queue.append(c)
 
 
-class Workflow(Namable):
+class Workflow(Namable, Visitable):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -228,37 +228,19 @@ class Workflow(Namable):
         if len(errors) and not silent:
             raise errors.pop()
 
-    def prepare(self, cfg_visitor: Configuration) -> None:
-        if not self.is_valid:
-            logging.error(f"{self.name}: invalid workflow cannot be configured")
-        else:
-            try:
-                self._dag.bfs_traverse(cfg_visitor.set_configuration)
-                self._invalid_config = False
-            except ConfigurationError as e:
-                logging.error(str(e))
-                self._invalid_config = True
-                raise
+    def accept_visitor(self, visitor: Visitor, mode: VisitMode):
+        if mode == VisitMode.elements_only:
+            self._dag.bfs_traverse(visitor.visit_element)
 
-    def reset(self, cfg_visitor: Configuration) -> None:
-        self._dag.bfs_traverse(cfg_visitor.reset_configuration)
+        elif mode == VisitMode.elements_then_links:
+            self._dag.bfs_traverse(visitor.visit_element)
+            self._dag.bfs_traverse_links(visitor.visit_link)
 
-    def _prepare_execution(self, exec_visitor: BaseExecutor) -> bool:
-        if not self.is_valid:
-            logging.error(f"{self.name}: invalid workflow cannot be run")
-        elif self._invalid_config is None or self._invalid_config:
-            logging.error(f"{self.name}: configuration is either missing or incomplete, workflow cannot be run")
-            self._invalid_config = True
-        else:
-            self._dag.bfs_traverse(exec_visitor.complete_runtime_configuration)
-            self._dag.bfs_traverse_links(exec_visitor.set_queues)
-            self._dag.bfs_traverse(exec_visitor.create_job_from)
-        return self.is_valid and not self._invalid_config
+        elif mode == VisitMode.links_only:
+            self._dag.bfs_traverse_links(visitor.visit_link)
 
-    async def schedule(self, exec_visitor: BaseExecutor, *args, **kwargs) -> None:
-        if self._prepare_execution(exec_visitor):
-            await exec_visitor.schedule(self.name, *args, **kwargs)
+        elif mode == VisitMode.links_then_elements:
+            self._dag.bfs_traverse_links(visitor.visit_link)
+            self._dag.bfs_traverse(visitor.visit_element)
 
-    def run(self, exec_visitor: BaseExecutor, *args, **kwargs) -> None:
-        if self._prepare_execution(exec_visitor):
-            exec_visitor.run(self.name, *args, **kwargs)
+

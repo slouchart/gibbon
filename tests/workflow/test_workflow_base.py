@@ -12,8 +12,7 @@ class TestCreate(unittest.TestCase):
 
         self.expected_attrs = ('add_source',
                                'add_target',
-                               'add_transformation',
-                               'prepare', 'schedule', 'run')
+                               'add_transformation')
 
     def test_create(self):
         self.assertIsNotNone(self.wk)

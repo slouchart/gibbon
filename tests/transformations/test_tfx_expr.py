@@ -33,8 +33,8 @@ class TestExpr(unittest.TestCase):
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_default_expr.prepare(self.cfg)
-        self.wk_default_expr.run(executor)
+        executor.run_workflow(self.wk_default_expr.name, self.wk_default_expr, self.cfg)
+
         self.assertSequenceEqual(self.results, self.data)
 
     def test_check_function(self):
@@ -50,8 +50,7 @@ class TestExpr(unittest.TestCase):
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_compute_expr.prepare(self.cfg)
-        self.wk_compute_expr.run(executor)
+        executor.run_workflow(self.wk_compute_expr.name, self.wk_compute_expr, self.cfg)
         self.assertSequenceEqual(self.results, [(0,), (2,), (-2,)])
 
 

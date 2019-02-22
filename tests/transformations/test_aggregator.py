@@ -50,8 +50,8 @@ class TestAggCounter(unittest.TestCase):
         sink = []
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('count:', 3,)])
 
 
@@ -74,8 +74,7 @@ class TestAggSum(unittest.TestCase):
         sink = []
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('sum:', 6,)])
 
 
@@ -97,8 +96,7 @@ class TestAggProduct(unittest.TestCase):
         sink = []
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('product:', 6,)])
 
 
@@ -120,8 +118,7 @@ class TestAggStringConcat(unittest.TestCase):
         sink = []
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('concat:', 'abc',)])
 
 
@@ -144,8 +141,7 @@ class TestAggGroupBySum(unittest.TestCase):
         sink = []
         cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
         cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
-        self.w.prepare(cfg)
-        self.w.run(gibbon.get_async_executor(shutdown=True))
+        gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertEqual(len(sink), 2)
         self.assertTrue('a' in dict(sink))
         self.assertTrue('b' in dict(sink))

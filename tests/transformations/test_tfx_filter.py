@@ -31,8 +31,8 @@ class TestFilter(unittest.TestCase):
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_all_rows.prepare(self.cfg)
-        self.wk_all_rows.run(executor)
+        executor.run_workflow(self.wk_all_rows.name, self.wk_all_rows, self.cfg)
+
         self.assertSequenceEqual(self.results, self.data)
 
     def testOnlyPositive(self):
@@ -43,8 +43,8 @@ class TestFilter(unittest.TestCase):
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk_only_pos.prepare(self.cfg)
-        self.wk_only_pos.run(executor)
+        executor.run_workflow(self.wk_only_pos.name, self.wk_only_pos, self.cfg)
+
         self.assertSequenceEqual(self.results, [(1,)])
 
 
@@ -70,8 +70,8 @@ class TestFilterString(unittest.TestCase):
         self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
-        self.wk.prepare(self.cfg)
-        self.wk.run(executor)
+        executor.run_workflow(self.wk.name, self.wk, self.cfg)
+
         self.assertSequenceEqual(sink, [('4444',)])
 
 

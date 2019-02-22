@@ -1,5 +1,7 @@
+from abc import abstractmethod
 from typing import Any
 import re
+from enum import *
 
 
 class Namable:
@@ -22,3 +24,36 @@ class Namable:
     @staticmethod
     def check_valid_name(name: str) -> bool:
         return name is not None and Namable.valid_name.match(name) is not None
+
+
+class Configurable:
+    @abstractmethod
+    def configure(self, **kwargs):
+        ...
+
+    @abstractmethod
+    def reset(self):
+        ...
+
+
+class Visitor:
+    @abstractmethod
+    def visit_element(self, name, element):
+        ...
+
+    @abstractmethod
+    def visit_link(self, elem1, elem2):
+        ...
+
+
+class VisitMode(Enum):
+    elements_only = 1
+    links_only = 2
+    links_then_elements = 3
+    elements_then_links = 4
+
+
+class Visitable:
+    @abstractmethod
+    def accept_visitor(self, visitor: Visitor, mode: VisitMode):
+        ...

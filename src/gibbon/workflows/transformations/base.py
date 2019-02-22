@@ -2,7 +2,7 @@ from typing import *
 from abc import abstractmethod
 
 
-from ..util import Namable
+from ..util import Namable, Configurable
 from ..exceptions import NodeNotFound  # exceptions
 from ..exceptions import ParentNodeReset, DuplicatedSource  # warnings
 
@@ -281,16 +281,6 @@ class NotDownStreamable(Connectable):
 
     def reset_target(self, target):
         return super().reset_target(target)
-
-
-class Configurable:
-    @abstractmethod
-    def configure(self, *args, **kwargs):
-        ...
-
-    @abstractmethod
-    def reset(self):
-        ...
 
 
 class StreamProcessor:
