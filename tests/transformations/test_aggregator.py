@@ -6,14 +6,17 @@ from src import gibbon
 class TestAggCreate(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_agg')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
     def test_create(self):
-        self.w.add_transformation('agg', gibbon.Aggregator,
-                                  key=lambda r: r, accumulator=lambda r: (0,), initializer=(0,))
-        self.w.connect('src', 'agg')
-        self.w.connect('agg', 'tgt')
+        with self.w.resume_build():
+            self.w.add_transformation('agg', gibbon.Aggregator,
+                                      key=lambda r: r, accumulator=lambda r: (0,), initializer=(0,))
+            self.w.connect('src', 'agg')
+            self.w.connect('agg', 'tgt')
+
         self.w.validate(verbose=True)
         self.assertTrue(self.w.is_valid)
 
@@ -21,16 +24,17 @@ class TestAggCreate(unittest.TestCase):
 class TestAggCounter(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_count')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
-        self.w.add_transformation('counter', gibbon.Aggregator,
-                                  key=lambda r: ('count:',),
-                                  accumulator=lambda r, c: (c+1,),
-                                  initializer=(0,))
+            self.w.add_transformation('counter', gibbon.Aggregator,
+                                      key=lambda r: ('count:',),
+                                      accumulator=lambda r, c: (c+1,),
+                                      initializer=(0,))
 
-        self.w.connect('src', 'counter')
-        self.w.connect('counter', 'tgt')
+            self.w.connect('src', 'counter')
+            self.w.connect('counter', 'tgt')
 
     def test_row_count_func(self):
         func = gibbon.row_count()
@@ -48,8 +52,8 @@ class TestAggCounter(unittest.TestCase):
         cfg = gibbon.Configuration()
         data = list(zip(['a', 'b', 'c']))
         sink = []
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
 
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('count:', 3,)])
@@ -58,22 +62,23 @@ class TestAggCounter(unittest.TestCase):
 class TestAggSum(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_sum')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
-        self.w.add_transformation('sum', gibbon.Aggregator,
-                                  key=lambda r: ('sum:',), accumulator=lambda r, s: (s+r[0],),
-                                  initializer=(0,))
+            self.w.add_transformation('sum', gibbon.Aggregator,
+                                      key=lambda r: ('sum:',), accumulator=lambda r, s: (s+r[0],),
+                                      initializer=(0,))
 
-        self.w.connect('src', 'sum')
-        self.w.connect('sum', 'tgt')
+            self.w.connect('src', 'sum')
+            self.w.connect('sum', 'tgt')
 
     def test_sum(self):
         cfg = gibbon.Configuration()
         data = list(zip([1, 2, 3]))
         sink = []
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('sum:', 6,)])
 
@@ -81,21 +86,22 @@ class TestAggSum(unittest.TestCase):
 class TestAggProduct(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_prd')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
-        self.w.add_transformation('prd', gibbon.Aggregator, key=lambda r: ('product:',),
-                                  accumulator=lambda r, p: (p*r[0],), initializer=(1,))
+            self.w.add_transformation('prd', gibbon.Aggregator, key=lambda r: ('product:',),
+                                      accumulator=lambda r, p: (p*r[0],), initializer=(1,))
 
-        self.w.connect('src', 'prd')
-        self.w.connect('prd', 'tgt')
+            self.w.connect('src', 'prd')
+            self.w.connect('prd', 'tgt')
 
     def test_product(self):
         cfg = gibbon.Configuration()
         data = list(zip([1, 2, 3]))
         sink = []
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('product:', 6,)])
 
@@ -103,21 +109,22 @@ class TestAggProduct(unittest.TestCase):
 class TestAggStringConcat(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_str_concat')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
-        self.w.add_transformation('concat', gibbon.Aggregator, key=lambda r: ('concat:',),
-                                  accumulator=lambda r, s: (s+r[0],), initializer=('',))
+            self.w.add_transformation('concat', gibbon.Aggregator, key=lambda r: ('concat:',),
+                                      accumulator=lambda r, s: (s+r[0],), initializer=('',))
 
-        self.w.connect('src', 'concat')
-        self.w.connect('concat', 'tgt')
+            self.w.connect('src', 'concat')
+            self.w.connect('concat', 'tgt')
 
     def test_count(self):
         cfg = gibbon.Configuration()
         data = list(zip(['a', 'b', 'c']))
         sink = []
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertSequenceEqual(sink, [('concat:', 'abc',)])
 
@@ -125,22 +132,23 @@ class TestAggStringConcat(unittest.TestCase):
 class TestAggGroupBySum(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_group_by')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
-        self.w.add_transformation('group', gibbon.Aggregator,
-                                  key=lambda r: r[0], accumulator=lambda r, s: (s+r[1],),
-                                  initializer=(0,))
+            self.w.add_transformation('group', gibbon.Aggregator,
+                                      key=lambda r: r[0], accumulator=lambda r, s: (s+r[1],),
+                                      initializer=(0,))
 
-        self.w.connect('src', 'group')
-        self.w.connect('group', 'tgt')
+            self.w.connect('src', 'group')
+            self.w.connect('group', 'tgt')
 
     def test_group_by(self):
         cfg = gibbon.Configuration()
         data = list(zip(['a', 'b', 'a', 'b'], [1, 2, 3, 0]))
         sink = []
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
         self.assertEqual(len(sink), 2)
         self.assertTrue('a' in dict(sink))

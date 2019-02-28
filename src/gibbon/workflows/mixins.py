@@ -160,7 +160,7 @@ class MultiDownStreamable(Connectable):
         for source in parents:
 
             if source in self.in_ports.values():
-                raise DuplicatedSource('Source duplicated')
+                raise DuplicatedSource(f'Duplicated source: {source.name}')
 
             n_port = self._get_next_available_input_port()
             self.in_ports[n_port] = source

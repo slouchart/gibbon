@@ -14,14 +14,17 @@ class TestExpr(unittest.TestCase):
         self.data = [(0,), (1,), (-1,)]
         self.results = []
         self.wk_default_expr = gibbon.Workflow('default')
-        self.wk_default_expr.add_source('src')
-        self.wk_default_expr.add_transformation('expression', gibbon.Expression, sources='src')
-        self.wk_default_expr.add_target('tgt', source='expression')
-
         self.wk_compute_expr = gibbon.Workflow('compute')
-        self.wk_compute_expr.add_source('src')
-        self.wk_compute_expr.add_transformation('expression', gibbon.Expression, sources='src', func=compute)
-        self.wk_compute_expr.add_target('tgt', source='expression')
+
+        with self.wk_default_expr.start_build():
+            self.wk_default_expr.add_source('src')
+            self.wk_default_expr.add_transformation('expression', gibbon.Expression, sources='src')
+            self.wk_default_expr.add_target('tgt', source='expression')
+
+        with self.wk_compute_expr.start_build():
+            self.wk_compute_expr.add_source('src')
+            self.wk_compute_expr.add_transformation('expression', gibbon.Expression, sources='src', func=compute)
+            self.wk_compute_expr.add_target('tgt', source='expression')
 
         self.cfg = gibbon.Configuration()
 
@@ -29,8 +32,8 @@ class TestExpr(unittest.TestCase):
 
         self.wk_default_expr.validate(verbose=True)
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_default_expr.name, self.wk_default_expr, self.cfg)
@@ -46,8 +49,8 @@ class TestExpr(unittest.TestCase):
     def test_compute(self):
         self.results = []
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
-        self.cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=self.results)
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=self.results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_compute_expr.name, self.wk_compute_expr, self.cfg)

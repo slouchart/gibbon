@@ -7,15 +7,17 @@ from src import gibbon
 class TestUnionCreate(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_union')
-        self.w.add_source('src1')
-        self.w.add_source('src2')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src1')
+            self.w.add_source('src2')
+            self.w.add_target('tgt')
 
     def test_create(self):
-        self.w.add_transformation('union', gibbon.Union)
-        self.w.connect('src1', 'union')
-        self.w.connect('src2', 'union')
-        self.w.connect('union', 'tgt')
+        with self.w.resume_build():
+            self.w.add_transformation('union', gibbon.Union)
+            self.w.connect('src1', 'union')
+            self.w.connect('src2', 'union')
+            self.w.connect('union', 'tgt')
         self.w.validate(verbose=True)
         self.assertTrue(self.w.is_valid)
 
@@ -23,10 +25,11 @@ class TestUnionCreate(unittest.TestCase):
 class TestUnionRun(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_union')
-        self.w.add_source('src1')
-        self.w.add_source('src2')
-        self.w.add_transformation('union', gibbon.Union, sources=('src1', 'src2',))
-        self.w.add_target('tgt', source='union')
+        with self.w.start_build():
+            self.w.add_source('src1')
+            self.w.add_source('src2')
+            self.w.add_transformation('union', gibbon.Union, sources=('src1', 'src2',))
+            self.w.add_target('tgt', source='union')
 
     def test_union(self):
         self.w.validate()
@@ -37,9 +40,9 @@ class TestUnionRun(unittest.TestCase):
         sink = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, iterable=data_src_1)
-        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=data_src_2)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src1').using(source=gibbon.SequenceWrapper, iterable=data_src_1)
+        cfg.configure('src2').using(source=gibbon.SequenceWrapper, iterable=data_src_2)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
 
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
 

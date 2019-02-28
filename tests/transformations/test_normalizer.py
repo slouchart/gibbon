@@ -7,24 +7,27 @@ from src import gibbon
 class TestNormalizerOne(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_normalizer')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
 
     def test_connect_normalizer(self):
-        self.w.add_transformation('normalize', gibbon.Normalizer, sources='src', key=0, entries=[])
-        self.w.connect('normalize', 'tgt')
+        with self.w.resume_build():
+            self.w.add_transformation('normalize', gibbon.Normalizer, sources='src', key=0, entries=[])
+            self.w.connect('normalize', 'tgt')
         self.assertTrue(self.w.is_valid)
 
 
 class TestNormalizerTwo(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('test_normalizer')
-        self.w.add_source('src')
-        self.w.add_target('tgt')
 
-        self.w.add_transformation('normalize', gibbon.Normalizer, sources='src',
-                                  key=2, entries=['Maths', 'CS', 'Physics'])
-        self.w.connect('normalize', 'tgt')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('tgt')
+            self.w.add_transformation('normalize', gibbon.Normalizer, sources='src',
+                                      key=2, entries=['Maths', 'CS', 'Physics'])
+            self.w.connect('normalize', 'tgt')
 
         self.w.validate(verbose=True)
 
@@ -33,8 +36,8 @@ class TestNormalizerTwo(unittest.TestCase):
 
         data = [('Norman', 'MSc.', '50', '70', '25')]
         sink = []
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
 
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, cfg)
 

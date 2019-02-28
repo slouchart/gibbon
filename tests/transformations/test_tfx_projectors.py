@@ -19,10 +19,11 @@ def row_split_unbalanced_2(r):  # expect 2 targets, get 3
 class TestConcat(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('concat')
-        self.w.add_source('src1')
-        self.w.add_source('src2')
-        self.w.add_transformation('concat', gibbon.Concat, sources=('src1', 'src2'))
-        self.w.add_target('tgt', source='concat')
+        with self.w.start_build():
+            self.w.add_source('src1')
+            self.w.add_source('src2')
+            self.w.add_transformation('concat', gibbon.Concat, sources=('src1', 'src2'))
+            self.w.add_target('tgt', source='concat')
 
     def test_concat(self):
         self.w.validate(verbose=True)
@@ -33,9 +34,9 @@ class TestConcat(unittest.TestCase):
         sink = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, iterable=src1)
-        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=src2)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src1').using(source=gibbon.SequenceWrapper, iterable=src1)
+        cfg.configure('src2').using(source=gibbon.SequenceWrapper, iterable=src2)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.w.name, self.w, cfg)
@@ -51,9 +52,9 @@ class TestConcat(unittest.TestCase):
         sink = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src1', source=gibbon.SequenceWrapper, iterable=src1)
-        cfg.add_configuration('src2', source=gibbon.SequenceWrapper, iterable=src2)
-        cfg.add_configuration('tgt', target=gibbon.SequenceWrapper, container=sink)
+        cfg.configure('src1').using(source=gibbon.SequenceWrapper, iterable=src1)
+        cfg.configure('src2').using(source=gibbon.SequenceWrapper, iterable=src2)
+        cfg.configure('tgt').using(target=gibbon.SequenceWrapper, container=sink)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.w.name, self.w, cfg)
@@ -68,10 +69,11 @@ class TestSplit(unittest.TestCase):
 
     def setUp(self):
         self.w = gibbon.Workflow('split')
-        self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, func=row_split, sources='src')
-        self.w.add_target('tgt1', source='splitter')
-        self.w.add_target('tgt2', source='splitter')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_transformation('splitter', gibbon.Split, func=row_split, sources='src')
+            self.w.add_target('tgt1', source='splitter')
+            self.w.add_target('tgt2', source='splitter')
 
     def test_split(self):
         self.w.validate(verbose=True)
@@ -81,9 +83,9 @@ class TestSplit(unittest.TestCase):
         sink2 = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
-        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
-        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=src)
+        cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sink1)
+        cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.w.name, self.w, cfg)
@@ -97,10 +99,11 @@ class TestSplit(unittest.TestCase):
 class TestSplitUnbalancedOne(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split_unbalanced_1')
-        self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_1, sources='src')
-        self.w.add_target('tgt1', source='splitter')
-        self.w.add_target('tgt2', source='splitter')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_1, sources='src')
+            self.w.add_target('tgt1', source='splitter')
+            self.w.add_target('tgt2', source='splitter')
 
     def test_split_unbalanced(self):
         self.w.validate(verbose=True)
@@ -110,9 +113,9 @@ class TestSplitUnbalancedOne(unittest.TestCase):
         sink2 = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
-        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
-        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=src)
+        cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sink1)
+        cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.w.name, self.w, cfg)
@@ -125,10 +128,11 @@ class TestSplitUnbalancedOne(unittest.TestCase):
 class TestSplitUnbalancedTwo(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('split_unbalanced_2')
-        self.w.add_source('src')
-        self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_2, sources='src')
-        self.w.add_target('tgt1', source='splitter')
-        self.w.add_target('tgt2', source='splitter')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_transformation('splitter', gibbon.Split, func=row_split_unbalanced_2, sources='src')
+            self.w.add_target('tgt1', source='splitter')
+            self.w.add_target('tgt2', source='splitter')
 
     def test_split_unbalanced(self):
         self.w.validate(verbose=True)
@@ -138,9 +142,9 @@ class TestSplitUnbalancedTwo(unittest.TestCase):
         sink2 = []
 
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=src)
-        cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sink1)
-        cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sink2)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=src)
+        cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sink1)
+        cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sink2)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.w.name, self.w, cfg)

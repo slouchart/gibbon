@@ -62,12 +62,13 @@ class TestCSVOpen(unittest.TestCase):
 class TestCSVSource(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('csv_read')
-        self.w.add_source('csv')
-        self.w.add_target('list', source='csv')
+        with self.w.start_build():
+            self.w.add_source('csv')
+            self.w.add_target('list', source='csv')
 
         p = get_src_path()
 
-        self.assertFalse(not p.exists(), f"Expected file {p.absolute()} doesn't exist")
+        self.assertFalse(not p.exists(), f"Expected file {p.absolute()} does not exist")
         self._filename = p.absolute()
 
     def test_csv_source(self):
@@ -75,8 +76,8 @@ class TestCSVSource(unittest.TestCase):
 
         results = []
         cfg = gibbon.Configuration()
-        cfg.add_configuration('csv', source=gibbon.CSVSourceFile, filename=self._filename)
-        cfg.add_configuration('list', target=gibbon.SequenceWrapper, container=results)
+        cfg.configure('csv').using(source=gibbon.CSVSourceFile, filename=self._filename)
+        cfg.configure('list').using(target=gibbon.SequenceWrapper, container=results)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.w.name, workflow=self.w, configuration=cfg)
@@ -88,8 +89,9 @@ class TestCSVSource(unittest.TestCase):
 class TestCSVTarget(unittest.TestCase):
     def setUp(self):
         self.w = gibbon.Workflow('csv_write')
-        self.w.add_source('src')
-        self.w.add_target('csv', source='src')
+        with self.w.start_build():
+            self.w.add_source('src')
+            self.w.add_target('csv', source='src')
 
         p = get_tgt_path()
         self._filename = p.absolute()
@@ -107,8 +109,8 @@ class TestCSVTarget(unittest.TestCase):
             ('Billy', 15),
         ]
         cfg = gibbon.Configuration()
-        cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=input_data)
-        cfg.add_configuration('csv', target=gibbon.CSVTargetFile, filename=self._filename)
+        cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=input_data)
+        cfg.configure('csv').using(target=gibbon.CSVTargetFile, filename=self._filename)
 
         gibbon.get_async_executor(shutdown=True).run_workflow(self.w.name, self.w, configuration=cfg)
         self.assertFileContent()

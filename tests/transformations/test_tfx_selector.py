@@ -25,60 +25,69 @@ class TestSelector(unittest.TestCase):
         self.data = [(0,), (1,), (-1,)]
 
         self.wk_sel_bin = gibbon.Workflow('binary_selector')
-        self.wk_sel_bin.add_source('src')
+        with self.wk_sel_bin.start_build():
+            self.wk_sel_bin.add_source('src')
 
-        conditions = (is_positive_or_zero, is_negative)
-        self.wk_sel_bin.add_transformation('sel', gibbon.Selector, conditions, sources='src',)
-        self.wk_sel_bin.add_target('tgt1', source='sel')
-        self.wk_sel_bin.add_target('tgt2', source='sel')
+            conditions = (is_positive_or_zero, is_negative)
+            self.wk_sel_bin.add_transformation('sel', gibbon.Selector, conditions, sources='src',)
+            self.wk_sel_bin.add_target('tgt1', source='sel')
+            self.wk_sel_bin.add_target('tgt2', source='sel')
 
         self.wk_sel_mul = gibbon.Workflow('multiple_selector')
-        self.wk_sel_mul.add_source('src')
+        with self.wk_sel_mul.start_build():
+            self.wk_sel_mul.add_source('src')
 
-        conditions = (is_positive, is_negative, is_zero)
-        self.wk_sel_mul.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+            conditions = (is_positive, is_negative, is_zero)
+            self.wk_sel_mul.add_transformation('sel', gibbon.Selector, conditions, sources='src')
 
-        self.wk_sel_mul.add_target('tgt1', source='sel')
-        self.wk_sel_mul.add_target('tgt2', source='sel')
-        self.wk_sel_mul.add_target('tgt3', source='sel')
+            self.wk_sel_mul.add_target('tgt1', source='sel')
+            self.wk_sel_mul.add_target('tgt2', source='sel')
+            self.wk_sel_mul.add_target('tgt3', source='sel')
 
-        conditions = (is_positive_or_zero, is_zero)
         self.wk_sel_shc = gibbon.Workflow('short_circuit_selector')
-        self.wk_sel_shc.add_source('src')
-        self.wk_sel_shc.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+        with self.wk_sel_shc.start_build():
+            conditions = (is_positive_or_zero, is_zero)
+            self.wk_sel_shc.add_source('src')
+            self.wk_sel_shc.add_transformation('sel', gibbon.Selector, conditions, sources='src')
 
-        self.wk_sel_shc.add_target('tgt1', source='sel')
-        self.wk_sel_shc.add_target('tgt2', source='sel')
+            self.wk_sel_shc.add_target('tgt1', source='sel')
+            self.wk_sel_shc.add_target('tgt2', source='sel')
 
-        conditions = (is_positive, is_negative)
         self.wk_sel_def = gibbon.Workflow('default_selector')
-        self.wk_sel_def.add_source('src')
-        self.wk_sel_def.add_transformation('sel', gibbon.Selector,
-                                           sources='src', conditions=conditions)
-        self.wk_sel_def.add_target('tgt1', source='sel')
-        self.wk_sel_def.add_target('tgt2', source='sel')
+        with self.wk_sel_def.start_build():
+            conditions = (is_positive, is_negative)
 
-        conditions = (is_positive, is_negative)
+            self.wk_sel_def.add_source('src')
+            self.wk_sel_def.add_transformation('sel', gibbon.Selector,
+                                               sources='src', conditions=conditions)
+            self.wk_sel_def.add_target('tgt1', source='sel')
+            self.wk_sel_def.add_target('tgt2', source='sel')
+
         self.wk_sel_osp1 = gibbon.Workflow('out_port_specified')
-        self.wk_sel_osp1.add_source('src')
-        self.wk_sel_osp1.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+        with self.wk_sel_osp1.start_build():
+            conditions = (is_positive, is_negative)
 
-        self.wk_sel_osp1.add_target('tgt1', source='sel')
-        self.wk_sel_osp1.add_target('tgt2', source='sel')
+            self.wk_sel_osp1.add_source('src')
+            self.wk_sel_osp1.add_transformation('sel', gibbon.Selector, conditions, sources='src')
 
-        conditions = (is_positive, is_negative)
+            self.wk_sel_osp1.add_target('tgt1', source='sel')
+            self.wk_sel_osp1.add_target('tgt2', source='sel')
+
         self.wk_sel_osp2 = gibbon.Workflow('no_out_ports_specified')
-        self.wk_sel_osp2.add_source('src')
-        self.wk_sel_osp2.add_transformation('sel', gibbon.Selector, conditions, sources='src')
-        self.wk_sel_osp2.add_target('tgt1', source='sel')
-        self.wk_sel_osp2.add_target('tgt2', source='sel')
+        with self.wk_sel_osp2.start_build():
+            conditions = (is_positive, is_negative)
+
+            self.wk_sel_osp2.add_source('src')
+            self.wk_sel_osp2.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+            self.wk_sel_osp2.add_target('tgt1', source='sel')
+            self.wk_sel_osp2.add_target('tgt2', source='sel')
 
         self.wk_sel_wd = gibbon.Workflow('with_default')
-        self.wk_sel_wd.add_source('src')
-        self.wk_sel_wd.add_transformation('sel', gibbon.Selector, conditions, sources='src')
-
-        self.wk_sel_wd.add_target('tgt1', source='sel')
-        self.wk_sel_wd.add_target('tgt2', source='sel')
+        with self.wk_sel_wd.start_build():
+            self.wk_sel_wd.add_source('src')
+            self.wk_sel_wd.add_transformation('sel', gibbon.Selector, conditions, sources='src')
+            self.wk_sel_wd.add_target('tgt1', source='sel')
+            self.wk_sel_wd.add_target('tgt2', source='sel')
 
         self.cfg = gibbon.Configuration()
 
@@ -87,9 +96,9 @@ class TestSelector(unittest.TestCase):
 
         sinks = ([], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_sel_bin.name, self.wk_sel_bin, self.cfg)
@@ -100,10 +109,10 @@ class TestSelector(unittest.TestCase):
     def testMultipleSelection(self):
         sinks = ([], [], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=self.data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
-        self.cfg.add_configuration('tgt3', target=gibbon.SequenceWrapper, container=sinks[2])
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=self.data)
+        self.cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.configure('tgt3').using(target=gibbon.SequenceWrapper, container=sinks[2])
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_sel_mul.name, self.wk_sel_mul, self.cfg)
@@ -117,9 +126,9 @@ class TestSelector(unittest.TestCase):
         data = [(0,)]
         sinks = ([], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_sel_shc.name, self.wk_sel_shc, self.cfg)
@@ -133,9 +142,9 @@ class TestSelector(unittest.TestCase):
         data = [(1,), (-1,), (0,)]
         sinks = ([], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sinks[1])
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_sel_def.name, self.wk_sel_def, self.cfg)
@@ -159,16 +168,18 @@ class TestSelector(unittest.TestCase):
            this additional target is used as a default destination for rows that don't
            meet any of the conditions"""
         self.assertTrue(self.wk_sel_wd.is_valid)
-        self.wk_sel_wd.add_target('tgt_default', source='sel')
+        with self.wk_sel_wd.resume_build():
+            self.wk_sel_wd.add_target('tgt_default', source='sel')
+
         self.assertTrue(self.wk_sel_wd.is_valid)
 
         data = [(0,), (1,), (-1,), (0,)]
         sinks = ([], [], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
-        self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, container=sinks[2])
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.configure('tgt_default').using(target=gibbon.SequenceWrapper, container=sinks[2])
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_sel_wd.name, self.wk_sel_wd, self.cfg)
@@ -179,27 +190,28 @@ class TestSelector(unittest.TestCase):
 
     def testWithDefault2(self):
         """Adding a useless target don't fail"""
-        #self.wk_sel_wd.reset(self.cfg)  # DEPRECATION WARNING
-        self.wk_sel_wd.add_target('tgt_default', source='sel')
+        with self.wk_sel_wd.resume_build():
+            self.wk_sel_wd.add_target('tgt_default', source='sel')
 
-        # this test show the workflow is valid
-        # any way, the Selector raised a build warning saying that a useless target was connected
-        with self.assertRaises(gibbon.SelectorHasTooManyTargets) as ctx:
-            self.wk_sel_wd.add_target('useless_target', source='sel')
+            # this test show the workflow is valid
+            # any way, the Selector raised a build warning saying that a useless target was connected
+            with self.assertRaises(gibbon.SelectorHasTooManyTargets) as ctx:
+                self.wk_sel_wd.add_target('useless_target', source='sel')
 
-        exc = ctx.exception
-        self.assertRegex(str(exc), r'Selector sel has too many targets$')
+            exc = ctx.exception
+            self.assertRegex(str(exc), r'Selector sel has too many targets$')
+
         self.assertTrue(self.wk_sel_wd.is_valid)
 
         data = [(0,), (1,), (-1,), (0,)]
         empty = []
         sinks = ([], [], [])
 
-        self.cfg.add_configuration('src', source=gibbon.SequenceWrapper, iterable=data)
-        self.cfg.add_configuration('tgt1', target=gibbon.SequenceWrapper, container=sinks[0])
-        self.cfg.add_configuration('tgt2', target=gibbon.SequenceWrapper, container=sinks[1])
-        self.cfg.add_configuration('tgt_default', target=gibbon.SequenceWrapper, container=sinks[2])
-        self.cfg.add_configuration('useless_target', target=gibbon.SequenceWrapper, container=empty)
+        self.cfg.configure('src').using(source=gibbon.SequenceWrapper, iterable=data)
+        self.cfg.configure('tgt1').using(target=gibbon.SequenceWrapper, container=sinks[0])
+        self.cfg.configure('tgt2').using(target=gibbon.SequenceWrapper, container=sinks[1])
+        self.cfg.configure('tgt_default').using(target=gibbon.SequenceWrapper, container=sinks[2])
+        self.cfg.configure('useless_target').using(target=gibbon.SequenceWrapper, container=empty)
 
         executor = gibbon.get_async_executor(shutdown=True)
         executor.run_workflow(self.wk_sel_wd.name, self.wk_sel_wd, self.cfg)

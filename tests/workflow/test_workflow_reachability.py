@@ -10,7 +10,8 @@ class TestReach1(unittest.TestCase):
 
     def test_reach_1(self):
         with self.assertRaises(gibbon.NodeReachabilityError) as ctx:
-            self.wks[0].add_source('src1')
+            with self.wks[0].start_build():
+                self.wks[0].add_source('src1')
             self.wks[0].validate()
 
         exc = ctx.exception
@@ -19,7 +20,8 @@ class TestReach1(unittest.TestCase):
 
     def test_reach_2(self):
         with self.assertRaises(gibbon.NodeReachabilityError) as ctx:
-            self.wks[1].add_target('tgt1', source=None)
+            with self.wks[1].start_build():
+                self.wks[1].add_target('tgt1', source=None)
             self.wks[1].validate()
 
         exc = ctx.exception
@@ -28,15 +30,20 @@ class TestReach1(unittest.TestCase):
 
     def test_reach_3(self):
         with self.assertRaises(gibbon.NodeNotFound) as ctx:
-            self.wks[0].add_target('tgt1', source='unknown')
+            with self.wks[0].start_build():
+                self.wks[0].add_target('tgt1', source='unknown')
 
-        exc = ctx.exception
-        self.assertRegex(str(exc), r'Node unknown not found$')
-        self.assertFalse(self.wks[0].is_valid)
+            exc = ctx.exception
+            self.assertRegex(str(exc), r'Node unknown not found$')
+
+            self.assertFalse(self.wks[0].is_valid)
+        pass
 
     def test_reach_4(self):
-        self.wks[2].add_source('src')
-        self.wks[2].add_target('tgt', source='src')
+        with self.wks[2].start_build():
+            self.wks[2].add_source('src')
+            self.wks[2].add_target('tgt', source='src')
+
         self.wks[2].validate(verbose=True)
         self.assertTrue(self.wks[2].is_valid)
 
@@ -48,15 +55,17 @@ class TestReach2(unittest.TestCase):
             self.wks.append(gibbon.Workflow(f'test_{inx}'))
 
     def test_reach_1(self):
-        self.wks[0].add_source('src')
-        self.wks[0].add_target('tgt1', source='src')
-        self.wks[0].add_target('tgt2', source='src')
+        with self.wks[0].start_build():
+            self.wks[0].add_source('src')
+            self.wks[0].add_target('tgt1', source='src')
+            self.wks[0].add_target('tgt2', source='src')
         self.assertTrue(self.wks[0].is_valid)
 
     def test_reach_2(self):
-        self.wks[1].add_source('src1')
-        self.wks[1].add_target('tgt1', source=None)
-        self.wks[1].add_target('tgt2', source='src1')
+        with self.wks[1].start_build():
+            self.wks[1].add_source('src1')
+            self.wks[1].add_target('tgt1', source=None)
+            self.wks[1].add_target('tgt2', source='src1')
 
         with self.assertRaises(gibbon.NodeReachabilityError) as ctx:
             self.wks[1].validate()
@@ -66,10 +75,11 @@ class TestReach2(unittest.TestCase):
         self.assertFalse(self.wks[1].is_valid)
 
     def test_reach_3(self):
-        self.wks[2].add_source('src')
-        self.wks[2].add_transformation('exp1', gibbon.Expression, sources='src')
-        self.wks[2].add_transformation('exp2', gibbon.Expression, sources='src')
-        self.wks[2].add_target('tgt1', source='exp2')
+        with self.wks[2].start_build():
+            self.wks[2].add_source('src')
+            self.wks[2].add_transformation('exp1', gibbon.Expression, sources='src')
+            self.wks[2].add_transformation('exp2', gibbon.Expression, sources='src')
+            self.wks[2].add_target('tgt1', source='exp2')
 
         with self.assertRaises(gibbon.NodeReachabilityError) as ctx:
             self.wks[2].validate()
