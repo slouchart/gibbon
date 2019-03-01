@@ -68,6 +68,9 @@ class Buildable:
     def resume_build(self):
         pass
 
+    def may_require_validation(self):
+        pass
+
 
 class Builder:
     def __init__(self, buildee: Buildable, product_factory, *args, **kwargs):

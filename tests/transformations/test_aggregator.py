@@ -30,7 +30,7 @@ class TestAggCounter(unittest.TestCase):
 
             self.w.add_transformation('counter', gibbon.Aggregator,
                                       key=lambda r: ('count:',),
-                                      accumulator=lambda r, c: (c+1,),
+                                      accumulator=lambda r, c: (c + 1,),
                                       initializer=(0,))
 
             self.w.connect('src', 'counter')
@@ -38,7 +38,7 @@ class TestAggCounter(unittest.TestCase):
 
     def test_row_count_func(self):
         func = gibbon.row_count()
-        r = None
+        r = ()
         c = 0
         self.assertEqual(func(r, c), (1,))
 
@@ -67,7 +67,7 @@ class TestAggSum(unittest.TestCase):
             self.w.add_target('tgt')
 
             self.w.add_transformation('sum', gibbon.Aggregator,
-                                      key=lambda r: ('sum:',), accumulator=lambda r, s: (s+r[0],),
+                                      key=lambda r: ('sum:',), accumulator=lambda r, s: (s + r[0],),
                                       initializer=(0,))
 
             self.w.connect('src', 'sum')
@@ -91,7 +91,7 @@ class TestAggProduct(unittest.TestCase):
             self.w.add_target('tgt')
 
             self.w.add_transformation('prd', gibbon.Aggregator, key=lambda r: ('product:',),
-                                      accumulator=lambda r, p: (p*r[0],), initializer=(1,))
+                                      accumulator=lambda r, p: (p * r[0],), initializer=(1,))
 
             self.w.connect('src', 'prd')
             self.w.connect('prd', 'tgt')
@@ -114,7 +114,7 @@ class TestAggStringConcat(unittest.TestCase):
             self.w.add_target('tgt')
 
             self.w.add_transformation('concat', gibbon.Aggregator, key=lambda r: ('concat:',),
-                                      accumulator=lambda r, s: (s+r[0],), initializer=('',))
+                                      accumulator=lambda r, s: (s + r[0],), initializer=('',))
 
             self.w.connect('src', 'concat')
             self.w.connect('concat', 'tgt')
@@ -137,7 +137,7 @@ class TestAggGroupBySum(unittest.TestCase):
             self.w.add_target('tgt')
 
             self.w.add_transformation('group', gibbon.Aggregator,
-                                      key=lambda r: r[0], accumulator=lambda r, s: (s+r[1],),
+                                      key=lambda r: r[0], accumulator=lambda r, s: (s + r[1],),
                                       initializer=(0,))
 
             self.w.connect('src', 'group')

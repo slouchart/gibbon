@@ -27,7 +27,7 @@ class WorkflowBuilder(Builder):
     def add_source(self, name: str) -> None:
         element = self._element_factory(Source, name)
         self.product.insert_node(name, element, None)
-        self._buildee._requires_validation = True
+        self._buildee.may_require_validation()
 
     def add_target(self, name: str, source: str = None) -> None:
         if source:
@@ -36,7 +36,7 @@ class WorkflowBuilder(Builder):
             parent = None
         element = self._element_factory(Target, name)
         self.product.insert_node(name, element, parent)
-        self._buildee._requires_validation = True
+        self._buildee.may_require_validation()
 
     def add_transformation(self, name: Text,
                            cls: Type[Transformation],
@@ -64,7 +64,7 @@ class WorkflowBuilder(Builder):
                 target = self.get_node_by_name(target)
                 target.set_source(element)
 
-        self._buildee._requires_validation = True
+        self._buildee.may_require_validation()
 
     def connect(self, source: str, *targets: str) -> None:
         if source:
@@ -73,7 +73,7 @@ class WorkflowBuilder(Builder):
         for target in targets:
             target = self.get_node_by_name(target)
             if target and source:
-                self._buildee._requires_validation = True
+                self._buildee.may_require_validation()
                 target.set_source(source)
 
 
@@ -88,6 +88,9 @@ class Workflow(Buildable, Namable, Visitable):
 
         if not Namable.check_valid_name(self.name):
             raise InvalidNameError(f'Object name is invalid: {self.name}')
+
+    def may_require_validation(self):
+        self._requires_validation = True
 
     @property
     def is_valid(self) -> bool:

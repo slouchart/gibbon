@@ -15,9 +15,9 @@ class TestCfgRun(unittest.TestCase):
 
         cfg = gibbon.Configuration()
         cfg['src'].source = gibbon.SequenceWrapper
-        cfg['src'].iterable = data
+        cfg('src').iterable = data
         cfg['tgt'].target = gibbon.SequenceWrapper
-        cfg['tgt'].container = results
+        cfg('tgt').container = results
 
         cfg.configure('truc').using(param1=2)
 
