@@ -38,6 +38,26 @@ class Configurable:
         ...
 
 
+class Validable:
+    def __init__(self, *args, **kwargs):
+        self._requires_validation = True
+        self._valid = False
+
+    def may_require_validation(self):
+        self._requires_validation = True
+
+    @property
+    def is_valid(self) -> bool:
+        if self._requires_validation:
+            self.validate(silent=True)
+
+        return self._valid
+
+    @abstractmethod
+    def validate(self, verbose: bool = False, silent: bool = False) -> None:
+        pass
+
+
 class Visitor:
     @abstractmethod
     def visit_element(self, name: str, element: Any) -> None:
@@ -80,9 +100,9 @@ class Builder:
 
     @property
     def product(self):
-        raise NotImplementedError  # implemented by the decorator 'buildable' in derived classes
+        return None # implemented by the decorator 'buildable' in derived classes
 
-    def _close(self):
+    def close(self):
         assert self._buildee._builder is self
 
         # destroy the relationship between the Builder and the Buildable
@@ -94,19 +114,19 @@ class Builder:
         self._product = None
 
 
-def set_builder(builder_cls: Builder, product_factory, *a_init_product, **kw_init_product):
+def make_concrete_buildable(builder_cls: Builder, product_factory, *a_init_product, **kw_init_product):
 
-    BUILDER_OUT_OF_SCOPE = 'Attempt to add a component outside the scope of the builder'
+    builder_out_of_scope = 'Attempt to add a component outside the scope of the builder'
 
-    def inner_decorator(Cls):
-        Cls._Builder = builder_cls
+    def inner_decorator(cclass):
+        cclass.builder_factory = builder_cls
 
         def product(self):
             if self._product is None:
-                raise RuntimeError(BUILDER_OUT_OF_SCOPE)
+                raise RuntimeError(builder_out_of_scope)
             return self._product
 
-        Cls._Builder.product = property(product)
+        setattr(cclass.builder_factory, 'product', property(product))
 
         # decorate __init__
         def __initialize(fn):
@@ -116,38 +136,38 @@ def set_builder(builder_cls: Builder, product_factory, *a_init_product, **kw_ini
                 fn(self, *a, *k)  # should be <decorated>.__init__
             return __init__
 
-        Cls.__init__ = __initialize(Cls.__init__)
+        cclass.__init__ = __initialize(cclass.__init__)
 
         def start_build(self):
-            self._builder = self._Builder(self, product_factory, *a_init_product, **kw_init_product)
+            self._builder = self.builder_factory(self, product_factory, *a_init_product, **kw_init_product)
             yield self._builder
-            self._product = self._builder._product
-            self._builder._close()
+            self._product = self._builder.product
+            self._builder.close()
             assert self._builder is None
 
         def resume_build(self):
-            self._builder = self._Builder(self, lambda o: o, self._product)
+            self._builder = self.builder_factory(self, lambda o: o, self._product)
             yield self._builder
-            self._product = self._builder._product
-            self._builder._close()
+            self._product = self._builder.product
+            self._builder.close()
             assert self._builder is None
 
-        Cls.start_build = contextmanager(start_build)
-        Cls.resume_build = contextmanager(resume_build)
+        cclass.start_build = contextmanager(start_build)
+        cclass.resume_build = contextmanager(resume_build)
 
         def _delegator(func):
             def decorated(self, *args, **kwargs):
                 if self._builder is not None:
                     func(self._builder, *args, **kwargs)
                 else:
-                    raise RuntimeError(BUILDER_OUT_OF_SCOPE)
+                    raise RuntimeError(builder_out_of_scope)
             return decorated
 
         # design choice: not exploring MRO to search for methods
         # => do not subclass from a subclass of Builder
-        for method in (m for m in Cls._Builder.__dict__.keys() if not m.startswith('_')):
-            setattr(Cls, method, _delegator(getattr(Cls._Builder, method)))
+        for method in (m for m in cclass.builder_factory.__dict__.keys() if not m.startswith('_')):
+            setattr(cclass, method, _delegator(getattr(cclass.builder_factory, method)))
 
-        return Cls
+        return cclass
 
     return inner_decorator

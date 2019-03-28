@@ -1,12 +1,12 @@
 import logging
 from typing import *
 
-from .exceptions import *
-from .mixins import Transformation, Connectable
 from .endpoints import Source, Target
+from .exceptions import *
 from .graph import DirectedAcyclicGraph
-from ..utils.abstract import Namable, Visitable, VisitMode, Visitor
-from ..utils.abstract import Builder, Buildable, set_builder
+from .mixins import Transformation, Connectable
+from ..utils.abstract import Builder, Buildable, make_concrete_buildable
+from ..utils.abstract import Namable, Validable, Visitable, VisitMode, Visitor
 
 
 class WorkflowBuilder(Builder):
@@ -77,27 +77,14 @@ class WorkflowBuilder(Builder):
                 target.set_source(source)
 
 
-@set_builder(WorkflowBuilder, product_factory=DirectedAcyclicGraph)
-class Workflow(Buildable, Namable, Visitable):
+@make_concrete_buildable(WorkflowBuilder, product_factory=DirectedAcyclicGraph)
+class Workflow(Buildable, Namable, Validable, Visitable):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self._requires_validation = True
-        self._valid = False
-
         if not Namable.check_valid_name(self.name):
             raise InvalidNameError(f'Object name is invalid: {self.name}')
-
-    def may_require_validation(self):
-        self._requires_validation = True
-
-    @property
-    def is_valid(self) -> bool:
-        if self._requires_validation:
-            self.validate(silent=True)
-
-        return self._valid
 
     def validate(self, verbose: bool = False, silent: bool = False) -> None:
 
