@@ -1,9 +1,8 @@
 import re
-
 from abc import abstractmethod
-from typing import Any
 from contextlib import contextmanager
 from enum import *
+from typing import Any
 
 
 class Namable:
@@ -100,7 +99,7 @@ class Builder:
 
     @property
     def product(self):
-        return None # implemented by the decorator 'buildable' in derived classes
+        return None  # implemented by the decorator 'buildable' in derived classes
 
     def close(self):
         assert self._buildee._builder is self
@@ -115,7 +114,6 @@ class Builder:
 
 
 def make_concrete_buildable(builder_cls: Builder, product_factory, *a_init_product, **kw_init_product):
-
     builder_out_of_scope = 'Attempt to add a component outside the scope of the builder'
 
     def inner_decorator(cclass):
@@ -134,6 +132,7 @@ def make_concrete_buildable(builder_cls: Builder, product_factory, *a_init_produ
                 self._product = None
                 self._builder = None
                 fn(self, *a, *k)  # should be <decorated>.__init__
+
             return __init__
 
         cclass.__init__ = __initialize(cclass.__init__)
@@ -161,6 +160,7 @@ def make_concrete_buildable(builder_cls: Builder, product_factory, *a_init_produ
                     func(self._builder, *args, **kwargs)
                 else:
                     raise RuntimeError(builder_out_of_scope)
+
             return decorated
 
         # design choice: not exploring MRO to search for methods
